@@ -12,7 +12,7 @@ def extract_pdf_text(path: str) -> str:
         from pypdf import PdfReader
     except ImportError as exc:
         raise ImportError(
-            "PDF support requires the 'pdf' extra. Install it with: pip install nexus-flow[pdf]"
+            "PDF support requires the 'pdf' extra. Install it with: pip install ragmill[pdf]"
         ) from exc
 
     reader = PdfReader(path)
@@ -25,7 +25,7 @@ def extract_docx_text(path: str) -> str:
         import docx
     except ImportError as exc:
         raise ImportError(
-            "DOCX support requires the 'docx' extra. Install it with: pip install nexus-flow[docx]"
+            "DOCX support requires the 'docx' extra. Install it with: pip install ragmill[docx]"
         ) from exc
 
     document = docx.Document(path)
