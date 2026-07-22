@@ -19,6 +19,20 @@ ragmill <command> [args]
 | `ragmill export <path.jsonl>` | Export the whole store to JSONL |
 | `ragmill import <path.jsonl>` | Import JSONL into the store |
 | `ragmill configure` | Launch the standalone setup UI that writes `.env` |
+| `ragmill --version` | Print the installed RAGMill version and exit |
+
+## Checking the installed version
+
+```bash
+ragmill --version          # e.g. "ragmill 0.3.1"
+```
+
+Or from Python:
+
+```python
+import ragmill
+print(ragmill.__version__)
+```
 
 ## Common flows
 

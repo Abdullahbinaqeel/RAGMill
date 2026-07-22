@@ -3,6 +3,11 @@
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.1] - 2026-07-22
+
+### Added
+- `ragmill --version` prints the installed version, and `ragmill.__version__` exposes it programmatically.
+
 ## [0.3.0] - 2026-07-22
 
 ### Added

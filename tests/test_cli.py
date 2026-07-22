@@ -19,6 +19,24 @@ def _run(monkeypatch, argv):
     cli.main()
 
 
+def test_version_flag_prints_version_and_exits(monkeypatch, capsys):
+    import ragmill
+
+    with pytest.raises(SystemExit) as exc:
+        _run(monkeypatch, ["--version"])
+    assert exc.value.code == 0
+    out = capsys.readouterr().out
+    assert out.strip() == f"ragmill {ragmill.__version__}"
+
+
+def test_version_flag_works_without_subcommand(monkeypatch, capsys):
+    """--version must short-circuit even though a subcommand is otherwise required."""
+    with pytest.raises(SystemExit) as exc:
+        _run(monkeypatch, ["--version"])
+    assert exc.value.code == 0
+    assert "ragmill" in capsys.readouterr().out
+
+
 def test_ingest_and_count(monkeypatch, tmp_path, caplog):
     pytest.importorskip("onnxruntime")
     pytest.importorskip("tokenizers")

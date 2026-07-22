@@ -9,8 +9,8 @@
 
 <p align="center"><em>A lightweight, zero-config local pipeline for AI data ingestion, semantic chunking, embeddings, vector search, and retrieval-augmented chat.</em></p>
 
-!!! tip "Latest release: v0.3.0"
-    `pip install ragmill` now ships the full CLI, REST API, retrieval-augmented
+!!! tip "Latest release: v0.3.1"
+    `pip install ragmill` ships the full CLI, REST API, retrieval-augmented
     chat, and Pinecone/Qdrant backends. See the [Changelog](changelog.md) for
     everything new.
 

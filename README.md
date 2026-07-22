@@ -224,6 +224,7 @@ ragmill serve               # Start API
 ragmill export ./out.jsonl  # Export
 ragmill import ./in.jsonl   # Import
 ragmill configure           # Standalone setup UI (writes .env)
+ragmill --version           # Print the installed version
 ```
 
 ## Configuration

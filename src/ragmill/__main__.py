@@ -11,6 +11,7 @@ Usage:
     ragmill export <path.jsonl>         Export store to JSONL
     ragmill import <path.jsonl>         Import JSONL into store
     ragmill configure                  Start the standalone setup UI (writes .env)
+    ragmill --version                   Print the installed RAGMill version
 """
 
 import argparse
@@ -18,7 +19,7 @@ import logging
 import os
 import sys
 
-from ragmill import RAGEngine
+from ragmill import RAGEngine, __version__
 from ragmill.chat import generate_answer
 from ragmill.config import RAGMillConfig
 from ragmill.embeddings import EmbeddingModel
@@ -180,6 +181,12 @@ def main():
         format="%(message)s",
     )
     parser = argparse.ArgumentParser(prog="ragmill", description="RAGMill CLI")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+        help="Print the installed RAGMill version and exit",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_ingest = sub.add_parser("ingest", help="Ingest a directory")
