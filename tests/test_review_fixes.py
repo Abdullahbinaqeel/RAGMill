@@ -14,6 +14,11 @@ import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch, call
 
+try:
+    import tomllib  # Python 3.11+
+except ModuleNotFoundError:  # Python 3.9-3.10
+    import tomli as tomllib
+
 import numpy as np
 import pytest
 
@@ -1447,8 +1452,6 @@ class TestConfigUiExtra:
     """config-ui extra must include FastAPI/uvicorn/pydantic/numpy."""
 
     def test_config_ui_extra_includes_fastapi(self):
-        import tomllib
-
         pyproject = Path(__file__).parent.parent / "pyproject.toml"
         data = tomllib.loads(pyproject.read_text())
         deps = data["project"]["optional-dependencies"]["config-ui"]
@@ -1542,8 +1545,6 @@ class TestServerExtraIncludesDotenv:
     """The server extra must include python-dotenv so .env is loaded."""
 
     def test_server_extra_includes_dotenv(self):
-        import tomllib
-
         pyproject = Path(__file__).parent.parent / "pyproject.toml"
         data = tomllib.loads(pyproject.read_text())
         deps = data["project"]["optional-dependencies"]["server"]
