@@ -37,7 +37,7 @@ Issues = "https://github.com/Abdullahbinaqeel/RAGMill/issues"
 pdf = ["pypdf>=4.0"]
 docx = ["python-docx>=1.0"]
 embeddings = [
-    "onnxruntime>=1.14.0",
+    "onnxruntime>=1.24.3",
     "numpy>=1.22.0",
     "tokenizers>=0.15.0"
 ]
@@ -78,7 +78,7 @@ docs = [
 all = [
     "pypdf>=4.0",
     "python-docx>=1.0",
-    "onnxruntime>=1.14.0",
+    "onnxruntime>=1.24.3",
     "numpy>=1.22.0",
     "tokenizers>=0.15.0",
     "fastapi>=0.110.0",
@@ -100,7 +100,7 @@ dev = [
     "pypdf>=4.0",
     "python-docx>=1.0",
     "reportlab>=4.0",
-    "onnxruntime>=1.14.0",
+    "onnxruntime>=1.24.3",
     "numpy>=1.22.0",
     "tokenizers>=0.15.0",
     "fastapi>=0.110.0",
