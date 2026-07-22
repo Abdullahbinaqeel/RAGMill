@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ragmill"
-version = "0.2.0"
-description = "A lightweight, zero-config local pipeline engine for AI data ingestion, semantic chunking, embeddings, and vector search."
+version = "0.3.0"
+description = "A lightweight, zero-config local pipeline engine for AI data ingestion, semantic chunking, embeddings, and vector search — with optional cloud backends and a REST API."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
@@ -29,6 +29,7 @@ dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/Abdullahbinaqeel/RAGMill"
+Documentation = "https://abdullahbinaqeel.github.io/RAGMill/"
 Repository = "https://github.com/Abdullahbinaqeel/RAGMill"
 Issues = "https://github.com/Abdullahbinaqeel/RAGMill/issues"
 
@@ -40,9 +41,60 @@ embeddings = [
     "numpy>=1.22.0",
     "tokenizers>=0.15.0"
 ]
-all = ["pypdf>=4.0", "python-docx>=1.0", "onnxruntime>=1.14.0", "numpy>=1.22.0", "tokenizers>=0.15.0"]
+pinecone = [
+    "pinecone>=5.0",
+    "numpy>=1.22.0",
+]
+qdrant = [
+    "qdrant-client>=1.9.0",
+    "numpy>=1.22.0",
+]
+server = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "pydantic>=2.0",
+    "python-multipart>=0.0.9",
+    "python-dotenv>=1.0.0",
+]
+chat = [
+    "llama-cpp-python>=0.3.0",
+]
+chat-gemini = [
+    "google-genai>=1.0.0",
+]
+chat-openai = [
+    "openai>=1.0.0",
+]
+config-ui = [
+    "python-dotenv>=1.0.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "pydantic>=2.0",
+    "numpy>=1.22.0",
+]
+docs = [
+    "mkdocs-material>=9.5",
+]
+all = [
+    "pypdf>=4.0",
+    "python-docx>=1.0",
+    "onnxruntime>=1.14.0",
+    "numpy>=1.22.0",
+    "tokenizers>=0.15.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "pydantic>=2.0",
+    "python-multipart>=0.0.9",
+    "pinecone>=5.0",
+    "qdrant-client>=1.9.0",
+    "llama-cpp-python>=0.3.0",
+    "google-genai>=1.0.0",
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+]
 dev = [
     "pytest>=7.0",
+    "pytest-cov>=4.0",
     "black>=23.0",
     "mypy>=1.0",
     "pypdf>=4.0",
@@ -50,11 +102,58 @@ dev = [
     "reportlab>=4.0",
     "onnxruntime>=1.14.0",
     "numpy>=1.22.0",
-    "tokenizers>=0.15.0"
+    "tokenizers>=0.15.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "pydantic>=2.0",
+    "python-multipart>=0.0.9",
+    "llama-cpp-python>=0.3.0",
+    "google-genai>=1.0.0",
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "qdrant-client>=1.9.0",
+    "pinecone>=5.0",
 ]
+
+[project.scripts]
+ragmill = "ragmill.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ragmill"]
 
 [tool.hatch.build.targets.sdist]
-exclude = ["overview.md"]
+# Ship the package, its docs, and governance files — but not internal
+# review/scratch notes that aren't part of the distributed project.
+exclude = [
+    "overview.md",
+    "JUDGE_REVIEW.md",
+    "SENIOR_DEV_REVIEW.md",
+    "SQA_REVIEW.md",
+    "USAGE_FLOW_REVIEW.md",
+    "test_report.md",
+    "automated_testing.md",
+    "manual_testing.md",
+    "medium_blog.md",
+    "version_3.md",
+    "run.sh",
+    "docs/",
+    "site/",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: requires a live external service (e.g. Qdrant, Pinecone)",
+]
+addopts = "-m 'not integration' --strict-markers"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore:.*starlette.testclient.*",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310", "py311", "py312"]
+
+[tool.mypy]
+ignore_missing_imports = true
+no_strict_optional = true

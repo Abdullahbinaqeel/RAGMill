@@ -1,0 +1,46 @@
+services:
+  ragmill:
+    build: .
+    profiles: ["sqlite"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+      - ./docs:/docs:ro
+    environment:
+      - RAGMILL_STORE_TYPE=sqlite
+      - RAGMILL_SQLITE_PATH=/data/ragmill.db
+      - RAGMILL_HOST=${RAGMILL_HOST:-127.0.0.1}
+      - RAGMILL_PORT=8000
+
+  ragmill-qdrant:
+    build: .
+    profiles: ["qdrant"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+      - ./docs:/docs:ro
+    environment:
+      - RAGMILL_STORE_TYPE=qdrant
+      - RAGMILL_QDRANT_URL=http://qdrant:6333
+      - RAGMILL_QDRANT_COLLECTION_NAME=ragmill
+      - RAGMILL_HOST=${RAGMILL_HOST:-127.0.0.1}
+      - RAGMILL_PORT=8000
+    depends_on:
+      qdrant:
+        condition: service_healthy
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    profiles: ["qdrant"]
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./data/qdrant:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:6333/readyz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

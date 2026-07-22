@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question / usage help
+    url: https://github.com/Abdullahbinaqeel/RAGMill/discussions
+    about: Ask questions and get help in Discussions.
+  - name: Documentation
+    url: https://abdullahbinaqeel.github.io/RAGMill/
+    about: Read the full RAGMill documentation.
+  - name: Report a security vulnerability
+    url: https://github.com/Abdullahbinaqeel/RAGMill/security/advisories/new
+    about: Please report vulnerabilities privately, not as a public issue.

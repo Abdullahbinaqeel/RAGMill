@@ -3,7 +3,9 @@ from ragmill import RAGEngine
 
 def test_stream_directory_reads_txt_and_md(sample_docs_dir):
     engine = RAGEngine()
-    results = {r["filename"]: r["raw_content"] for r in engine.stream_directory(str(sample_docs_dir))}
+    results = {
+        r["filename"]: r["raw_content"] for r in engine.stream_directory(str(sample_docs_dir))
+    }
 
     assert results["notes.txt"] == "Plain text file content."
     assert "Some markdown content." in results["readme.md"]
@@ -18,14 +20,18 @@ def test_stream_directory_skips_unsupported_extensions(sample_docs_dir):
 
 def test_stream_directory_extracts_pdf_text(sample_docs_dir):
     engine = RAGEngine()
-    results = {r["filename"]: r["raw_content"] for r in engine.stream_directory(str(sample_docs_dir))}
+    results = {
+        r["filename"]: r["raw_content"] for r in engine.stream_directory(str(sample_docs_dir))
+    }
 
     assert "PDF extracted content." in results["report.pdf"]
 
 
 def test_stream_directory_extracts_docx_text(sample_docs_dir):
     engine = RAGEngine()
-    results = {r["filename"]: r["raw_content"] for r in engine.stream_directory(str(sample_docs_dir))}
+    results = {
+        r["filename"]: r["raw_content"] for r in engine.stream_directory(str(sample_docs_dir))
+    }
 
     assert "DOCX extracted content." in results["letter.docx"]
 

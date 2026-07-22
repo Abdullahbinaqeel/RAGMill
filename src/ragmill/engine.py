@@ -1,41 +1,47 @@
 """
 RAGMill Core Engine
-Optimized for high-performance directory crawling, semantic splitting,
-and clean data structural alignment.
+
+Provides directory crawling, semantic splitting, and pipeline execution.
 """
 
+import logging
 import os
 import re
 from typing import List, Dict, Any, Generator
 
 from ragmill.parsers import extract_pdf_text, extract_docx_text
 
-PLAIN_TEXT_EXTENSIONS = ('.txt', '.md', '.log', '.rst')
-PDF_EXTENSIONS = ('.pdf',)
-DOCX_EXTENSIONS = ('.docx',)
+logger = logging.getLogger(__name__)
+
+PLAIN_TEXT_EXTENSIONS = (".txt", ".md", ".log", ".rst")
+PDF_EXTENSIONS = (".pdf",)
+DOCX_EXTENSIONS = (".docx",)
 
 
 class RAGEngine:
     def __init__(self, chunk_size: int = 500, overlap: int = 50):
         """
-        Initializes the AI-Native Data Pipeline Engine.
+        Initializes the RAG engine.
 
-        :param chunk_size: Maximum structural character size permitted per single block.
-        :param overlap: Token/character historical window size to carry context forward.
+        :param chunk_size: Maximum character size per chunk.
+        :param overlap: Character overlap between consecutive chunks for context.
         """
         self.chunk_size = chunk_size
         self.overlap = max(0, overlap)
 
         if self.overlap >= self.chunk_size:
-            raise ValueError("Overlap threshold cannot be greater than or equal to total chunk size.")
+            raise ValueError(
+                "Overlap threshold cannot be greater than or equal to total chunk size."
+            )
 
     def stream_directory(self, directory_path: str) -> Generator[Dict[str, Any], None, None]:
         """
-        Performs high-efficiency traversal over a target local directory,
-        streaming extracted text payloads while preserving system memory.
+        Walks a directory and yields extracted file metadata for supported formats.
         """
         if not os.path.exists(directory_path):
-            raise FileNotFoundError(f"Target path tracking validation failed for: '{directory_path}'")
+            raise FileNotFoundError(
+                f"Target path tracking validation failed for: '{directory_path}'"
+            )
 
         for root, _, files in os.walk(directory_path):
             for file in files:
@@ -51,15 +57,14 @@ class RAGEngine:
                         "source_path": os.path.abspath(full_path),
                         "filename": file,
                         "raw_content": content.strip(),
-                        "modified_at": os.path.getmtime(full_path)
+                        "modified_at": os.path.getmtime(full_path),
                     }
                 except Exception as e:
-                    # Log error safely to console without terminating pipeline execution
-                    print(f"[⚠️ Pipeline Warning] Unable to parse file {full_path}: {str(e)}")
+                    logger.warning("Unable to parse file %s: %s", full_path, e, exc_info=True)
 
     def _extract_content(self, full_path: str, extension: str) -> str:
         if extension in PLAIN_TEXT_EXTENSIONS:
-            with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
                 return f.read()
         if extension in PDF_EXTENSIONS:
             return extract_pdf_text(full_path)
@@ -76,7 +81,7 @@ class RAGEngine:
             return []
 
         # Split along logical structural breaks (paragraphs, list blocks, markdown breaks)
-        paragraphs = re.split(r'\n\s*\n', text)
+        paragraphs = re.split(r"\n\s*\n", text)
         chunks: List[str] = []
         current_buffer = ""
 
@@ -93,7 +98,7 @@ class RAGEngine:
                     current_buffer = ""
 
                 # Split down into sentence tokens
-                sentences = re.split(r'(?<=[.!?])\s+', paragraph)
+                sentences = re.split(r"(?<=[.!?])\s+", paragraph)
                 for sentence in sentences:
                     sentence = sentence.strip()
                     if not sentence:
@@ -106,8 +111,14 @@ class RAGEngine:
                             chunks.append(current_buffer)
 
                         # Handle long sentence edge case: verify slice safety before copying historical context
-                        overlap_prefix = current_buffer[-self.overlap:] if len(current_buffer) >= self.overlap else current_buffer
-                        current_buffer = f"{overlap_prefix} {sentence}".strip() if self.overlap > 0 else sentence
+                        overlap_prefix = (
+                            current_buffer[-self.overlap :]
+                            if len(current_buffer) >= self.overlap
+                            else current_buffer
+                        )
+                        current_buffer = (
+                            f"{overlap_prefix} {sentence}".strip() if self.overlap > 0 else sentence
+                        )
             else:
                 # Standard appending logic for typical sized semantic paragraphs
                 spacing = "\n\n" if current_buffer else ""
@@ -118,13 +129,35 @@ class RAGEngine:
                         chunks.append(current_buffer.strip())
 
                     # Establish overlap baseline from preceding content block
-                    overlap_prefix = current_buffer[-self.overlap:] if len(current_buffer) >= self.overlap else current_buffer
-                    current_buffer = f"{overlap_prefix}\n\n{paragraph}".strip() if self.overlap > 0 else paragraph
+                    overlap_prefix = (
+                        current_buffer[-self.overlap :]
+                        if len(current_buffer) >= self.overlap
+                        else current_buffer
+                    )
+                    current_buffer = (
+                        f"{overlap_prefix}\n\n{paragraph}".strip()
+                        if self.overlap > 0
+                        else paragraph
+                    )
 
         if current_buffer:
             chunks.append(current_buffer.strip())
 
-        return chunks
+        # Hard fallback: enforce chunk_size by slicing any oversized chunk
+        # into windows of chunk_size with overlap.
+        result: List[str] = []
+        for chunk in chunks:
+            if len(chunk) <= self.chunk_size:
+                result.append(chunk)
+            else:
+                # Slice into overlapping windows of chunk_size
+                step = max(1, self.chunk_size - self.overlap)
+                for start in range(0, len(chunk), step):
+                    window = chunk[start : start + self.chunk_size]
+                    if window:
+                        result.append(window)
+
+        return result
 
     def execute_pipeline(self, directory_path: str) -> List[Dict[str, Any]]:
         """
@@ -138,15 +171,17 @@ class RAGEngine:
             text_chunks = self.semantic_chunking(file_manifest["raw_content"])
 
             for index, chunk in enumerate(text_chunks):
-                pipeline_payloads.append({
-                    "metadata": {
-                        "source_file": file_manifest["source_path"],
-                        "filename": file_manifest["filename"],
-                        "chunk_index": index,
-                        "character_length": len(chunk),
-                        "modified_at": file_manifest["modified_at"]
-                    },
-                    "content": chunk
-                })
+                pipeline_payloads.append(
+                    {
+                        "metadata": {
+                            "source_file": file_manifest["source_path"],
+                            "filename": file_manifest["filename"],
+                            "chunk_index": index,
+                            "character_length": len(chunk),
+                            "modified_at": file_manifest["modified_at"],
+                        },
+                        "content": chunk,
+                    }
+                )
 
         return pipeline_payloads

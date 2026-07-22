@@ -5,3 +5,13 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+.env
+site/
+.coverage
+.coverage.*
+.mypy_cache/
+ragmill.db
+ragmill.db-*
+*.db-wal
+*.db-shm
+data/

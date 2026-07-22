@@ -45,11 +45,13 @@ def test_search_ranks_closest_vector_first():
         _payload("b.txt", 0, "points toward y"),
         _payload("c.txt", 0, "points toward z"),
     ]
-    embeddings = np.stack([
-        _normalized([1, 0, 0]),
-        _normalized([0, 1, 0]),
-        _normalized([0, 0, 1]),
-    ])
+    embeddings = np.stack(
+        [
+            _normalized([1, 0, 0]),
+            _normalized([0, 1, 0]),
+            _normalized([0, 0, 1]),
+        ]
+    )
     store.add(payloads, embeddings)
 
     query = _normalized([0.9, 0.1, 0])
@@ -139,7 +141,10 @@ def test_file_state_roundtrip():
 
 def test_delete_by_source_removes_chunks_and_file_state():
     store = VectorStore()
-    store.add([_payload("a.txt", 0, "alpha", source_file="/docs/a.txt")], np.stack([_normalized([1, 0, 0])]))
+    store.add(
+        [_payload("a.txt", 0, "alpha", source_file="/docs/a.txt")],
+        np.stack([_normalized([1, 0, 0])]),
+    )
     store.upsert_file_state("/docs/a.txt", "hash1", 1000.0)
 
     store.delete_by_source("/docs/a.txt")
@@ -152,7 +157,10 @@ def test_delete_missing_sources_removes_only_stale_entries():
     store = VectorStore()
     store.upsert_file_state("/docs/keep.txt", "hash1", 1000.0)
     store.upsert_file_state("/docs/stale.txt", "hash2", 1000.0)
-    store.add([_payload("stale.txt", 0, "gone", source_file="/docs/stale.txt")], np.stack([_normalized([1, 0, 0])]))
+    store.add(
+        [_payload("stale.txt", 0, "gone", source_file="/docs/stale.txt")],
+        np.stack([_normalized([1, 0, 0])]),
+    )
 
     removed = store.delete_missing_sources({"/docs/keep.txt"})
 

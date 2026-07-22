@@ -3,6 +3,28 @@
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] - 2026-07-22
+
+### Added
+- CLI entry point (`ragmill` command) with subcommands: `ingest`, `sync`, `search`, `chat`, `count`, `serve`, `export`, `import`, `configure`.
+- REST API server (`ragmill serve`) with FastAPI — endpoints for ingest, sync, search, chat, export, import, count, health.
+- Retrieval-augmented chat via three backends: local GGUF model (`ragmill[chat]`), Gemini (`ragmill[chat-gemini]`), OpenAI (`ragmill[chat-openai]`).
+- Standalone config UI (`ragmill configure`) for setting up cloud backends and chat keys without editing `.env` by hand.
+- Pinecone cloud vector store backend (`ragmill[pinecone]`).
+- Qdrant cloud vector store backend (`ragmill[qdrant]`).
+- JSONL export/import for backup and cross-backend migration.
+- `RAGMillConfig` centralizes all settings in a single dataclass, loaded from env vars / `.env`.
+- Configurable embedding dimension (`RAGMILL_EMBEDDING_DIM`).
+- Batched embedding and upsert operations for better throughput.
+- Docker support with `docker-compose.yml` (SQLite and Qdrant profiles).
+
+### Changed
+- Default SQLite path is now `./ragmill.db` (was `:memory:`) — data persists across CLI invocations.
+- Server binds to `127.0.0.1` by default (was `0.0.0.0`) — not exposed to the network unless explicitly configured.
+- `config-ui` extra now includes FastAPI, uvicorn, pydantic, and numpy so `ragmill configure` works out of the box.
+- `server` extra now includes `python-dotenv` so `.env` files are loaded automatically.
+- Pinecone `RAGMILL_PINECONE_ENVIRONMENT` is now honored (parses region from formats like `us-west-2`, `us-west1-gcp`).
+
 ## [0.2.0]
 
 ### Added

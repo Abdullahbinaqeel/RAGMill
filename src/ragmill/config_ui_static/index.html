@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RAGMill Setup</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #14171c;
+    --border: #262b33;
+    --fg: #e6e9ef;
+    --dim: #8a93a3;
+    --accent: #4fd67a;
+    --accent-dim: #2c6b45;
+    --danger: #ff6b6b;
+    --mono: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  #app { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-size: 20px; margin: 0 0 6px; }
+  .subtitle { color: var(--dim); margin: 0 0 20px; font-size: 13px; }
+  .banner {
+    background: rgba(79, 214, 122, 0.08);
+    border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-bottom: 28px;
+  }
+  section.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  section.card h2 {
+    font-size: 14px;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--border);
+    color: var(--dim);
+  }
+  .badge.optional { color: var(--dim); }
+  .card-desc { color: var(--dim); font-size: 12.5px; margin: 0 0 14px; }
+  .radio-row { display: flex; gap: 18px; margin-bottom: 14px; flex-wrap: wrap; }
+  .radio-row label {
+    display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;
+  }
+  .field-group { display: none; padding-top: 8px; border-top: 1px dashed var(--border); }
+  .field-group.active { display: block; }
+  .field { margin-bottom: 12px; }
+  .field label {
+    display: block; font-size: 12.5px; color: var(--dim); margin-bottom: 4px;
+  }
+  .field label .req { color: var(--accent); }
+  input[type="text"], input[type="password"], input[type="number"] {
+    width: 100%;
+    background: #0c0e12;
+    border: 1px solid var(--border);
+    color: var(--fg);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+    outline: none;
+  }
+  input:focus { border-color: var(--accent-dim); }
+  .hint { color: var(--dim); font-size: 11.5px; margin-top: 4px; }
+  button#saveBtn {
+    background: var(--accent);
+    color: #06210f;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 22px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+  }
+  button#saveBtn:hover { opacity: 0.9; }
+  #result {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    display: none;
+    white-space: pre-wrap;
+  }
+  #result.ok { display: block; background: rgba(79,214,122,0.08); border: 1px solid var(--accent-dim); color: var(--accent); }
+  #result.err { display: block; background: rgba(255,107,107,0.08); border: 1px solid #7a2c2c; color: var(--danger); }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>RAGMill Setup</h1>
+  <p class="subtitle">This is a standalone configuration tool — separate from wherever RAGMill actually runs. Fill in what you need, save, done.</p>
+
+  <div class="banner">
+    RAGMill works completely offline with zero API keys by default (SQLite storage + a local embedding model + a local chat model).
+    Everything below is optional — only fill in a section if you want a cloud vector-store backend, or if you'd rather use
+    Gemini/ChatGPT for answer generation instead of the built-in local model.
+  </div>
+
+  <form id="configForm">
+    <section class="card">
+      <h2>Vector store backend <span class="badge optional">optional</span></h2>
+      <p class="card-desc">Where document chunks + embeddings are stored. Default is SQLite — a local file, no setup needed.</p>
+      <div class="radio-row">
+        <label><input type="radio" name="store_type" value="sqlite" checked> SQLite (default)</label>
+        <label><input type="radio" name="store_type" value="qdrant"> Qdrant</label>
+        <label><input type="radio" name="store_type" value="pinecone"> Pinecone</label>
+      </div>
+
+      <div class="field-group" data-group="store_type" data-for="qdrant">
+        <div class="field">
+          <label>Qdrant cluster URL <span class="req">— required for Qdrant</span></label>
+          <input type="text" name="qdrant_url" placeholder="https://your-cluster.aws.cloud.qdrant.io">
+        </div>
+        <div class="field">
+          <label>Qdrant API key <span class="req">— required for Qdrant</span></label>
+          <input type="password" name="qdrant_api_key" placeholder="your Qdrant API key">
+        </div>
+        <div class="field">
+          <label>Collection name <span class="badge optional">optional, default "ragmill"</span></label>
+          <input type="text" name="qdrant_collection_name" placeholder="ragmill">
+        </div>
+      </div>
+
+      <div class="field-group" data-group="store_type" data-for="pinecone">
+        <div class="field">
+          <label>Pinecone API key <span class="req">— required for Pinecone</span></label>
+          <input type="password" name="pinecone_api_key" placeholder="your Pinecone API key">
+        </div>
+        <div class="field">
+          <label>Pinecone environment <span class="badge optional">optional</span></label>
+          <input type="text" name="pinecone_environment" placeholder="us-west-2">
+        </div>
+        <div class="field">
+          <label>Index name <span class="badge optional">optional, default "ragmill"</span></label>
+          <input type="text" name="pinecone_index_name" placeholder="ragmill">
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Answer generation (chat) <span class="badge optional">optional</span></h2>
+      <p class="card-desc">How RAGMill turns retrieved chunks into an answer. Default is a local model — no API key, ever. Switch to Gemini or ChatGPT if you want cloud-quality answers instead.</p>
+      <div class="radio-row">
+        <label><input type="radio" name="chat_backend" value="local" checked> Local model (default)</label>
+        <label><input type="radio" name="chat_backend" value="gemini"> Gemini</label>
+        <label><input type="radio" name="chat_backend" value="openai"> ChatGPT (OpenAI)</label>
+      </div>
+
+      <div class="field-group active" data-group="chat_backend" data-for="local">
+        <div class="field">
+          <label>Model repo (Hugging Face) <span class="badge optional">optional</span></label>
+          <input type="text" name="chat_model_repo" placeholder="Qwen/Qwen2.5-1.5B-Instruct-GGUF">
+        </div>
+        <div class="field">
+          <label>Model file <span class="badge optional">optional</span></label>
+          <input type="text" name="chat_model_file" placeholder="qwen2.5-1.5b-instruct-q4_k_m.gguf">
+        </div>
+        <div class="field">
+          <label>Context size (tokens) <span class="badge optional">optional, default 4096</span></label>
+          <input type="number" name="chat_n_ctx" placeholder="4096">
+        </div>
+        <p class="hint">First use downloads the model (~1.1GB by default) to <code>~/.cache/ragmill/models</code>.</p>
+      </div>
+
+      <div class="field-group" data-group="chat_backend" data-for="gemini">
+        <div class="field">
+          <label>Gemini API key <span class="req">— required for Gemini</span></label>
+          <input type="password" name="gemini_api_key" placeholder="your Gemini API key">
+        </div>
+        <div class="field">
+          <label>Model <span class="badge optional">optional, default "gemini-flash-latest"</span></label>
+          <input type="text" name="gemini_model" placeholder="gemini-flash-latest">
+        </div>
+      </div>
+
+      <div class="field-group" data-group="chat_backend" data-for="openai">
+        <div class="field">
+          <label>OpenAI API key <span class="req">— required for ChatGPT</span></label>
+          <input type="password" name="openai_api_key" placeholder="your OpenAI API key">
+        </div>
+        <div class="field">
+          <label>Model <span class="badge optional">optional, default "gpt-4o-mini"</span></label>
+          <input type="text" name="openai_model" placeholder="gpt-4o-mini">
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Server settings <span class="badge optional">optional</span></h2>
+      <p class="card-desc">Host/port for <code>ragmill serve</code> (the REST API + chatbox), not this setup page.</p>
+      <div class="field">
+        <label>Host <span class="badge optional">optional, default 0.0.0.0</span></label>
+        <input type="text" name="server_host" placeholder="0.0.0.0">
+      </div>
+      <div class="field">
+        <label>Port <span class="badge optional">optional, default 8000</span></label>
+        <input type="number" name="server_port" placeholder="8000">
+      </div>
+    </section>
+
+    <button type="submit" id="saveBtn">Save configuration</button>
+    <div id="result"></div>
+  </form>
+</div>
+
+<script>
+(function () {
+  function setupRadioToggle(radioName) {
+    const radios = document.querySelectorAll(`input[name="${radioName}"]`);
+    const groups = document.querySelectorAll(`.field-group[data-group="${radioName}"]`);
+
+    function update() {
+      const checked = document.querySelector(`input[name="${radioName}"]:checked`);
+      const selected = checked ? checked.value : null;
+      groups.forEach(g => g.classList.toggle('active', g.dataset.for === selected));
+    }
+    radios.forEach(r => r.addEventListener('change', update));
+    update();
+  }
+
+  setupRadioToggle('store_type');
+  setupRadioToggle('chat_backend');
+
+  document.getElementById('configForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const data = {};
+    new FormData(form).forEach((value, key) => { data[key] = value; });
+
+    const result = document.getElementById('result');
+    result.className = '';
+    result.style.display = 'none';
+
+    try {
+      const res = await fetch('/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        result.className = 'err';
+        result.textContent = 'Error: ' + (body.detail || res.status);
+        return;
+      }
+      result.className = 'ok';
+      result.textContent = body.message + (body.saved.length ? '\n\nSaved keys: ' + body.saved.join(', ') : '\n\nNothing was filled in — no keys were saved.');
+    } catch (err) {
+      result.className = 'err';
+      result.textContent = 'Error: ' + String(err);
+    }
+  });
+})();
+</script>
+</body>
+</html>
