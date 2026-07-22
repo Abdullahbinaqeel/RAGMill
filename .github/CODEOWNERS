@@ -1,0 +1,10 @@
+# Code owners are requested for review automatically on pull requests.
+# See https://docs.github.com/en/repositories/managing-your-repos-settings/about-code-owners
+
+# Default owner for everything in the repository
+*                       @Abdullahbinaqeel
+
+# Packaging, CI, and release tooling
+/pyproject.toml         @Abdullahbinaqeel
+/.github/               @Abdullahbinaqeel
+/RELEASING.md           @Abdullahbinaqeel

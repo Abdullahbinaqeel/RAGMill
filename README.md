@@ -282,6 +282,29 @@ ragmill/
 │   ├── config_ui_static/      # Setup UI's HTML form
 │   └── __main__.py            # CLI entry point
 ├── tests/
+├── docs/                      # MkDocs documentation source
 ├── Dockerfile
 └── docker-compose.yml
 ```
+
+## Documentation
+
+Full documentation is published at
+**<https://abdullahbinaqeel.github.io/RAGMill/>**.
+
+- [Quickstart](docs/quickstart.md) · [Installation](docs/installation.md) · [Configuration](docs/guide/configuration.md)
+- [CLI](docs/guide/cli.md) · [REST API](docs/guide/rest-api.md) · [Chat](docs/guide/chat.md)
+- [Vector stores](docs/guide/vector-stores.md) · [Migration](docs/guide/migration.md)
+- [API reference](docs/api-reference.md) · [FAQ](docs/faq.md)
+
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) to get
+started, and note our [Code of Conduct](CODE_OF_CONDUCT.md). Found a security
+issue? Please report it privately via [SECURITY.md](SECURITY.md) — not a public
+issue. Maintainers: see [RELEASING.md](RELEASING.md) for the release process.
+
+## License
+
+[MIT](LICENSE) © Abdullah Bin Aqeel
+

@@ -1,17 +1,76 @@
-.venv/
+# ── Byte-compiled / optimized / C extensions ───────────────────────────────
 __pycache__/
-*.pyc
-.pytest_cache/
-*.egg-info/
+*.py[cod]
+*$py.class
+*.so
+
+# ── Distribution / packaging ────────────────────────────────────────────────
+.Python
 build/
+develop-eggs/
 dist/
-.env
-site/
+downloads/
+eggs/
+.eggs/
+sdist/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+*.whl
+*.tar.gz
+MANIFEST
+pip-wheel-metadata/
+
+# ── Virtual environments ────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# ── Testing, coverage & type checking ───────────────────────────────────────
+.pytest_cache/
+.cache/
 .coverage
 .coverage.*
+coverage.xml
+htmlcov/
 .mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.tox/
+.nox/
+
+# ── Documentation build ─────────────────────────────────────────────────────
+site/
+
+# ── Secrets & local config ──────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── RAGMill runtime data ────────────────────────────────────────────────────
 ragmill.db
 ragmill.db-*
 *.db-wal
 *.db-shm
 data/
+
+# ── Internal / working notes (not part of the public repository) ────────────
+notes/
+
+# ── Editors & IDEs ──────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# ── Operating system ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini

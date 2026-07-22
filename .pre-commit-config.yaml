@@ -1,0 +1,30 @@
+# Run `pre-commit install` once, then hooks run automatically on every commit.
+# Run against everything with `pre-commit run --all-files`.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        args: ["--line-length=100"]
+
+  # mypy runs from the local environment so it uses the project's config and
+  # installed dependencies (matches the CI invocation exactly).
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy src/ragmill/ --ignore-missing-imports --no-strict-optional
+        language: system
+        pass_filenames: false
+        types: [python]
