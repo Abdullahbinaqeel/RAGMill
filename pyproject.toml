@@ -60,7 +60,7 @@ chat = [
     "llama-cpp-python>=0.3.0",
 ]
 chat-gemini = [
-    "google-genai>=1.0.0",
+    "google-genai>=2.13.0",
 ]
 chat-openai = [
     "openai>=1.0.0",
@@ -88,7 +88,7 @@ all = [
     "pinecone>=5.0",
     "qdrant-client>=1.9.0",
     "llama-cpp-python>=0.3.0",
-    "google-genai>=1.0.0",
+    "google-genai>=2.13.0",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
 ]
@@ -108,7 +108,7 @@ dev = [
     "pydantic>=2.0",
     "python-multipart>=0.0.9",
     "llama-cpp-python>=0.3.0",
-    "google-genai>=1.0.0",
+    "google-genai>=2.13.0",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
     "qdrant-client>=1.9.0",
