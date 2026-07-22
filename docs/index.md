@@ -1,6 +1,18 @@
 # RAGMill
 
+<p align="center">
+<a href="https://pypi.org/project/ragmill/"><img src="https://img.shields.io/pypi/v/ragmill.svg" alt="PyPI"></a>
+<a href="https://pypi.org/project/ragmill/"><img src="https://img.shields.io/pypi/pyversions/ragmill.svg" alt="Python versions"></a>
+<a href="https://github.com/Abdullahbinaqeel/RAGMill/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+<a href="https://github.com/Abdullahbinaqeel/RAGMill/actions/workflows/ci.yml"><img src="https://github.com/Abdullahbinaqeel/RAGMill/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+</p>
+
 <p align="center"><em>A lightweight, zero-config local pipeline for AI data ingestion, semantic chunking, embeddings, vector search, and retrieval-augmented chat.</em></p>
+
+!!! tip "Latest release: v0.3.0"
+    `pip install ragmill` now ships the full CLI, REST API, retrieval-augmented
+    chat, and Pinecone/Qdrant backends. See the [Changelog](changelog.md) for
+    everything new.
 
 <div class="grid cards" markdown>
 
