@@ -63,7 +63,7 @@ chat-gemini = [
     "google-genai>=1.0.0",
 ]
 chat-openai = [
-    "openai>=1.0.0",
+    "openai>=2.46.0",
 ]
 config-ui = [
     "python-dotenv>=1.0.0",
@@ -89,7 +89,7 @@ all = [
     "qdrant-client>=1.9.0",
     "llama-cpp-python>=0.3.0",
     "google-genai>=1.0.0",
-    "openai>=1.0.0",
+    "openai>=2.46.0",
     "python-dotenv>=1.0.0",
 ]
 dev = [
@@ -109,7 +109,7 @@ dev = [
     "python-multipart>=0.0.9",
     "llama-cpp-python>=0.3.0",
     "google-genai>=1.0.0",
-    "openai>=1.0.0",
+    "openai>=2.46.0",
     "python-dotenv>=1.0.0",
     "qdrant-client>=1.9.0",
     "pinecone>=5.0",
