@@ -39,7 +39,7 @@ docx = ["python-docx>=1.0"]
 embeddings = [
     "onnxruntime>=1.14.0",
     "numpy>=1.22.0",
-    "tokenizers>=0.15.0"
+    "tokenizers>=0.23.1"
 ]
 pinecone = [
     "pinecone>=5.0",
@@ -80,7 +80,7 @@ all = [
     "python-docx>=1.0",
     "onnxruntime>=1.14.0",
     "numpy>=1.22.0",
-    "tokenizers>=0.15.0",
+    "tokenizers>=0.23.1",
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.27.0",
     "pydantic>=2.0",
@@ -102,7 +102,7 @@ dev = [
     "reportlab>=4.0",
     "onnxruntime>=1.14.0",
     "numpy>=1.22.0",
-    "tokenizers>=0.15.0",
+    "tokenizers>=0.23.1",
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.27.0",
     "pydantic>=2.0",
