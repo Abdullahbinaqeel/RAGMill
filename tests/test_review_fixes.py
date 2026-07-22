@@ -277,6 +277,51 @@ class TestCloudTimeFiltering:
         assert meta["modified_at"] == 1234567890.0
         assert isinstance(meta["modified_at"], float)
 
+    def test_qdrant_add_handles_modified_at_none(self):
+        """A file with modified_at=None must not raise (regression: float(None))."""
+        mock_client = MagicMock()
+
+        from ragmill.qdrant_store import QdrantVectorStore
+
+        store = QdrantVectorStore.__new__(QdrantVectorStore)
+        store.client = mock_client
+        store.collection_name = "test"
+        store._state_collection = "test__file_state"
+        store._models = MagicMock()
+
+        payloads = [_payload("a.txt", 0, "content", modified_at=None)]
+        embeddings = np.stack([_normalized([1, 0, 0] + [0] * 381)])
+        store.add(payloads, embeddings)  # must not raise
+
+        point = mock_client.upsert.call_args[1]["points"][0]
+        assert point.payload["modified_at"] is None
+
+    def test_pinecone_add_handles_modified_at_none(self):
+        """A file with modified_at=None must not raise; the key is omitted
+        (Pinecone metadata cannot contain null)."""
+        mock_index = MagicMock()
+
+        with patch.dict(
+            sys.modules,
+            {
+                "pinecone": MagicMock(
+                    Pinecone=MagicMock(return_value=MagicMock()), ServerlessSpec=MagicMock()
+                )
+            },
+        ):
+            from ragmill.pinecone_store import PineconeVectorStore
+
+            store = PineconeVectorStore.__new__(PineconeVectorStore)
+            store.index = mock_index
+            store._embedding_dim = 384
+
+            payloads = [_payload("a.txt", 0, "content", modified_at=None)]
+            embeddings = np.stack([_normalized([1, 0, 0] + [0] * 381)])
+            store.add(payloads, embeddings)  # must not raise
+
+        meta = mock_index.upsert.call_args[1]["vectors"][0]["metadata"]
+        assert "modified_at" not in meta
+
     def test_pinecone_search_includes_modified_at_in_results(self):
         """Pinecone search() results should include modified_at in metadata."""
         mock_index = MagicMock()

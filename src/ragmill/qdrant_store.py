@@ -123,6 +123,9 @@ class QdrantVectorStore(BaseVectorStore):
         points = []
         for i, (payload, vector) in enumerate(zip(payloads, embeddings)):
             chunk_id = f"{payload['metadata']['source_file']}__{payload['metadata']['chunk_index']}"
+            # A file may legitimately have no modified_at (explicit None). Qdrant
+            # payloads allow null, so store None rather than coercing to 0.0.
+            raw_modified_at = payload["metadata"].get("modified_at")
             points.append(
                 models.PointStruct(
                     id=_stable_point_id(chunk_id),
@@ -133,7 +136,9 @@ class QdrantVectorStore(BaseVectorStore):
                         "filename": payload["metadata"]["filename"],
                         "chunk_index": payload["metadata"]["chunk_index"],
                         "content": payload["content"][:40000],
-                        "modified_at": float(payload["metadata"].get("modified_at", 0)),
+                        "modified_at": (
+                            float(raw_modified_at) if raw_modified_at is not None else None
+                        ),
                     },
                 )
             )

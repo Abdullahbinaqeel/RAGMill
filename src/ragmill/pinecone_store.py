@@ -91,17 +91,22 @@ class PineconeVectorStore(BaseVectorStore):
         vectors = []
         for payload, vector in zip(payloads, embeddings):
             chunk_id = f"{payload['metadata']['source_file']}__{payload['metadata']['chunk_index']}"
+            metadata: Dict[str, Any] = {
+                "source_file": payload["metadata"]["source_file"],
+                "filename": payload["metadata"]["filename"],
+                "chunk_index": payload["metadata"]["chunk_index"],
+                "content": payload["content"][:40000],
+            }
+            # Pinecone metadata cannot contain null values, so only include
+            # modified_at when the file actually has one.
+            raw_modified_at = payload["metadata"].get("modified_at")
+            if raw_modified_at is not None:
+                metadata["modified_at"] = float(raw_modified_at)
             vectors.append(
                 {
                     "id": chunk_id,
                     "values": np.asarray(vector, dtype=np.float32).tolist(),
-                    "metadata": {
-                        "source_file": payload["metadata"]["source_file"],
-                        "filename": payload["metadata"]["filename"],
-                        "chunk_index": payload["metadata"]["chunk_index"],
-                        "content": payload["content"][:40000],
-                        "modified_at": float(payload["metadata"].get("modified_at", 0)),
-                    },
+                    "metadata": metadata,
                 }
             )
 
