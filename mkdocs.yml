@@ -14,8 +14,8 @@ copyright: Copyright &copy; Abdullah Bin Aqeel — MIT License
 
 theme:
   name: material
-  logo: assets/logo.png
-  favicon: assets/logo.png
+  logo: assets/ragmill-logo.png
+  favicon: assets/ragmill-logo.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
