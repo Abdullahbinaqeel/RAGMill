@@ -46,7 +46,7 @@ pinecone = [
     "numpy>=1.22.0",
 ]
 qdrant = [
-    "qdrant-client>=1.9.0",
+    "qdrant-client>=1.18.0",
     "numpy>=1.22.0",
 ]
 server = [
@@ -86,7 +86,7 @@ all = [
     "pydantic>=2.0",
     "python-multipart>=0.0.9",
     "pinecone>=5.0",
-    "qdrant-client>=1.9.0",
+    "qdrant-client>=1.18.0",
     "llama-cpp-python>=0.3.0",
     "google-genai>=1.0.0",
     "openai>=1.0.0",
@@ -111,7 +111,7 @@ dev = [
     "google-genai>=1.0.0",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
-    "qdrant-client>=1.9.0",
+    "qdrant-client>=1.18.0",
     "pinecone>=5.0",
 ]
 
