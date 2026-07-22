@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.2] - 2026-07-22
+
+### Fixed
+- CLI no longer requires numpy just to start: `ragmill --version` and `ragmill --help` now work on a core-only install (heavy imports are deferred into the commands that need them).
+- Data commands that need numpy (`ingest`, `sync`, `search`, `count`, `export`, `import`) now fail with a clear "install `ragmill[embeddings]`" message instead of a raw `ModuleNotFoundError: numpy`.
+
 ## [0.3.1] - 2026-07-22
 
 ### Added

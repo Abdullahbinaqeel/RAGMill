@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ragmill"
-version = "0.3.1"
+version = "0.3.2"
 description = "A lightweight, zero-config local pipeline engine for AI data ingestion, semantic chunking, embeddings, and vector search — with optional cloud backends and a REST API."
 readme = "README.md"
 requires-python = ">=3.9"

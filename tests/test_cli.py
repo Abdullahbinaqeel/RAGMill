@@ -37,6 +37,26 @@ def test_version_flag_works_without_subcommand(monkeypatch, capsys):
     assert "ragmill" in capsys.readouterr().out
 
 
+def test_cli_import_does_not_pull_in_numpy_modules():
+    """The CLI entry point must import without numpy so `ragmill --version` and
+    `--help` work on a core-only install (regression: heavy top-level imports)."""
+    import importlib
+
+    for name in list(sys.modules):
+        if name.startswith(
+            ("ragmill.embeddings", "ragmill.vector_store", "ragmill.export", "ragmill.sync")
+        ):
+            sys.modules.pop(name, None)
+
+    import ragmill.__main__ as m
+
+    importlib.reload(m)
+
+    assert "ragmill.embeddings" not in sys.modules
+    assert "ragmill.vector_store" not in sys.modules
+    assert "ragmill.export" not in sys.modules
+
+
 def test_ingest_and_count(monkeypatch, tmp_path, caplog):
     pytest.importorskip("onnxruntime")
     pytest.importorskip("tokenizers")
@@ -104,7 +124,8 @@ def test_chat_repl_uses_mocked_generator(monkeypatch, tmp_path, caplog, mock_llm
     pytest.importorskip("onnxruntime")
     pytest.importorskip("tokenizers")
     monkeypatch.setenv("RAGMILL_SQLITE_PATH", str(tmp_path / "cli.db"))
-    monkeypatch.setattr(cli, "generate_answer", mock_llm)
+    # cmd_chat imports generate_answer lazily from ragmill.chat, so patch the source.
+    monkeypatch.setattr("ragmill.chat.generate_answer", mock_llm)
 
     responses = iter(["what is this?", "exit"])
     monkeypatch.setattr("builtins.input", lambda prompt="": next(responses))

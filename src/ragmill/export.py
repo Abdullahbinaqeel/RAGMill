@@ -15,7 +15,13 @@ import base64
 import json
 from typing import Any, Dict, List
 
-import numpy as np
+try:
+    import numpy as np
+except ImportError as exc:  # numpy ships with the embeddings/pinecone/qdrant extras
+    raise ImportError(
+        "Export/import requires numpy. Install a runtime extra, "
+        "e.g. pip install ragmill[embeddings]"
+    ) from exc
 
 from ragmill.vector_store import BaseVectorStore
 

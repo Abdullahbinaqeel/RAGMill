@@ -19,13 +19,13 @@ import logging
 import os
 import sys
 
+# NOTE: only import modules here that are dependency-free (no numpy/onnxruntime),
+# so `ragmill --version` / `ragmill --help` work on a core-only install. Heavy
+# modules (embeddings, vector_store, export, sync, chat) are imported lazily
+# inside the commands that need them, and raise a clear "install ragmill[...]"
+# message when the corresponding extra is missing.
 from ragmill import RAGEngine, __version__
-from ragmill.chat import generate_answer
 from ragmill.config import RAGMillConfig
-from ragmill.embeddings import EmbeddingModel
-from ragmill.export import export_store, import_store
-from ragmill.sync import sync_directory
-from ragmill.vector_store import store_from_config
 
 logger = logging.getLogger(__name__)
 
@@ -35,10 +35,14 @@ def _get_config() -> RAGMillConfig:
 
 
 def _get_store(cfg: RAGMillConfig):
+    from ragmill.vector_store import store_from_config
+
     return store_from_config(cfg)
 
 
 def cmd_ingest(args):
+    from ragmill.embeddings import EmbeddingModel
+
     cfg = _get_config()
     store = _get_store(cfg)
     engine = RAGEngine(chunk_size=cfg.chunk_size, overlap=cfg.overlap)
@@ -56,6 +60,9 @@ def cmd_ingest(args):
 
 
 def cmd_sync(args):
+    from ragmill.embeddings import EmbeddingModel
+    from ragmill.sync import sync_directory
+
     cfg = _get_config()
     store = _get_store(cfg)
     engine = RAGEngine(chunk_size=cfg.chunk_size, overlap=cfg.overlap)
@@ -69,6 +76,8 @@ def cmd_sync(args):
 
 
 def cmd_search(args):
+    from ragmill.embeddings import EmbeddingModel
+
     cfg = _get_config()
     store = _get_store(cfg)
     model = EmbeddingModel(model_name=cfg.embedding_model)
@@ -92,6 +101,9 @@ def cmd_search(args):
 
 
 def cmd_chat(args):
+    from ragmill.chat import generate_answer
+    from ragmill.embeddings import EmbeddingModel
+
     cfg = _get_config()
     store = _get_store(cfg)
     model = EmbeddingModel(model_name=cfg.embedding_model)
@@ -162,6 +174,8 @@ def cmd_configure(args):
 
 
 def cmd_export(args):
+    from ragmill.export import export_store
+
     cfg = _get_config()
     store = _get_store(cfg)
     written = export_store(args.path, store)
@@ -169,6 +183,8 @@ def cmd_export(args):
 
 
 def cmd_import(args):
+    from ragmill.export import import_store
+
     cfg = _get_config()
     store = _get_store(cfg)
     imported = import_store(args.path, store)

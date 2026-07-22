@@ -13,7 +13,12 @@ import urllib.request
 from pathlib import Path
 from typing import List, Optional, Union
 
-import numpy as np
+try:
+    import numpy as np
+except ImportError as exc:  # numpy ships with the embeddings/cloud extras
+    raise ImportError(
+        "Embeddings require the 'embeddings' extra. Install it with: pip install ragmill[embeddings]"
+    ) from exc
 
 logger = logging.getLogger(__name__)
 
