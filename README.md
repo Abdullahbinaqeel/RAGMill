@@ -1,4 +1,8 @@
-# RAGMill
+<p align="center">
+  <img src="logo.png" alt="RAGMill logo" width="200">
+</p>
+
+<h1 align="center">RAGMill</h1>
 
 [![PyPI](https://img.shields.io/pypi/v/ragmill.svg)](https://pypi.org/project/ragmill/)
 [![CI](https://github.com/Abdullahbinaqeel/RAGMill/actions/workflows/ci.yml/badge.svg)](https://github.com/Abdullahbinaqeel/RAGMill/actions/workflows/ci.yml)
