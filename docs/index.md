@@ -9,9 +9,11 @@
 
 <p align="center"><em>A lightweight, zero-config local pipeline for AI data ingestion, semantic chunking, embeddings, vector search, and retrieval-augmented chat.</em></p>
 
-!!! tip "Latest release: v0.3.2"
+!!! tip "Latest release: v0.4.0"
     `pip install ragmill` ships the full CLI, REST API, retrieval-augmented
-    chat, and Pinecone/Qdrant backends. See the [Changelog](changelog.md) for
+    chat, and Pinecone/Qdrant backends. v0.4.0 adds spreadsheets, slides,
+    HTML, CSV, and RTF (via the `office` extra) plus OCR for images and
+    scanned PDFs (via the `ocr` extra). See the [Changelog](changelog.md) for
     everything new.
 
 <div class="grid cards" markdown>
@@ -26,7 +28,7 @@
 
 - :material-file-document-multiple: **Any folder → searchable knowledge base**
 
-    Point it at a directory of `.txt`, `.md`, `.pdf`, or `.docx` files and get semantic search + grounded Q&A.
+    Point it at a directory of text, Markdown, PDF, DOCX, spreadsheets, slides, HTML, CSV, RTF — even images and scanned PDFs (OCR) — and get semantic search + grounded Q&A.
 
 - :material-swap-horizontal: **Swappable everything**
 
@@ -42,7 +44,7 @@ end to end:
 
 ```mermaid
 flowchart LR
-    A[Documents<br/>.txt .md .pdf .docx] --> B[Ingest<br/>+ chunk]
+    A[Documents<br/>txt md pdf docx<br/>xlsx pptx html csv rtf<br/>images/scans OCR] --> B[Ingest<br/>+ chunk]
     B --> C[Embed<br/>ONNX MiniLM]
     C --> D[(Vector store<br/>SQLite / Pinecone / Qdrant)]
     E[Question] --> F[Embed query]

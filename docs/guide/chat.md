@@ -75,6 +75,11 @@ print(answer)
 ## The system prompt
 
 All backends share one instruction: answer *only* from the provided context,
-cite the source filename per claim (e.g. `[report.pdf]`), and say so plainly
-when the context doesn't contain the answer rather than guessing. This is what
-makes answers auditable — every claim points back to a file.
+lead with a direct answer and then a brief (2–4 sentence) explanation, and say
+so plainly when the context doesn't contain the answer rather than guessing.
+
+Answers no longer embed inline bracketed citation markers (e.g. `[report.pdf]`
+or `[1]`) — they read cleanly, and the source filenames are returned
+**separately** alongside the answer (the CLI prints them, and the REST
+`/chat` endpoint returns them in a `sources` array), so results stay auditable
+without cluttering the prose.

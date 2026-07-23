@@ -24,12 +24,21 @@ at a time instead of loading the whole folder into memory, so a directory with
 | Extension | Read via |
 |---|---|
 | `.txt` `.md` `.log` `.rst` | direct file read |
-| `.pdf` | `pypdf` (the `pdf` extra) |
-| `.docx` | `python-docx` (the `docx` extra) |
+| `.csv` `.tsv` | stdlib `csv` (no extra) |
+| `.pdf` | `pypdf` (the `pdf` extra); scanned PDFs fall back to OCR |
+| `.docx` | `python-docx` (the `docx` extra); tables included |
+| `.html` `.htm` | `beautifulsoup4` (the `office` extra) |
+| `.rtf` | `striprtf` (the `office` extra) |
+| `.xlsx` | `openpyxl` (the `office` extra) |
+| `.pptx` | `python-pptx` (the `office` extra) |
+| `.png` `.jpg` `.jpeg` `.tiff` `.bmp` `.gif` | `pytesseract` + `tesseract` (the `ocr` extra) |
 
-Parser imports are lazy, so `import ragmill` never requires `pypdf`/`python-docx`.
-An unreadable or unsupported file is skipped with a warning instead of killing
-the run.
+Parser imports are lazy, so `import ragmill` never requires any of these — a
+format's dependency is only needed when a file of that type is actually
+encountered. An unreadable or unsupported file is skipped with a warning
+instead of killing the run, and a supported file that yields **no** extractable
+text (e.g. a scanned PDF with OCR unavailable) is skipped with a warning too,
+rather than stored empty.
 
 ## 02 — Semantic chunking
 

@@ -26,9 +26,11 @@ pip install ragmill
 
 | Command | Adds | Use when |
 |---|---|---|
-| `pip install ragmill` | *(nothing)* | `.txt` / `.md` / `.log` / `.rst` ingestion + chunking only |
+| `pip install ragmill` | *(nothing)* | `.txt` / `.md` / `.log` / `.rst` / `.csv` / `.tsv` ingestion + chunking only |
 | `pip install "ragmill[pdf]"` | `pypdf` | reading `.pdf` files |
 | `pip install "ragmill[docx]"` | `python-docx` | reading `.docx` files |
+| `pip install "ragmill[office]"` | `beautifulsoup4`, `striprtf`, `openpyxl`, `python-pptx` | reading `.html` / `.htm` / `.rtf` / `.xlsx` / `.pptx` files |
+| `pip install "ragmill[ocr]"` | `pytesseract`, `pillow` | OCR for images (`.png` / `.jpg` / …) and scanned/image-only PDFs |
 | `pip install "ragmill[embeddings]"` | `onnxruntime`, `numpy`, `tokenizers` | local embeddings + vector search |
 | `pip install "ragmill[server]"` | `fastapi`, `uvicorn`, `pydantic` | the REST API |
 | `pip install "ragmill[chat]"` | `llama-cpp-python` | local LLM answers (no API key) |
@@ -46,6 +48,13 @@ pip install ragmill
 !!! note "Quote the brackets"
     `zsh` (the default macOS shell) treats `[ ]` as a glob. Always quote the
     package spec: `pip install "ragmill[all]"`.
+
+!!! warning "OCR needs system binaries"
+    The `ocr` extra installs the Python side only. You also need the
+    `tesseract` binary on `PATH` (`brew install tesseract` /
+    `apt-get install tesseract-ocr`), plus `pdftoppm` from poppler
+    (`brew install poppler` / `apt-get install poppler-utils`) to OCR scanned
+    PDFs. OCR is English-only by default.
 
 ## What gets installed (and what doesn't)
 

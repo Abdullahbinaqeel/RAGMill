@@ -5,8 +5,9 @@ few minutes. It assumes `pip install "ragmill[all]"`.
 
 ## 1. Point it at a folder
 
-Any directory of `.txt`, `.md`, `.log`, `.rst`, `.pdf`, or `.docx` files works.
-For a first run, make one:
+Any directory of `.txt`, `.md`, `.log`, `.rst`, `.csv`, `.tsv`, `.pdf`,
+`.docx`, `.html`, `.rtf`, `.xlsx`, `.pptx`, or image files (`.png`, `.jpg`,
+… via OCR) works. For a first run, make one:
 
 ```bash
 mkdir my_docs

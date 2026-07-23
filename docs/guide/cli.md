@@ -24,7 +24,7 @@ ragmill <command> [args]
 ## Checking the installed version
 
 ```bash
-ragmill --version          # e.g. "ragmill 0.3.1"
+ragmill --version          # e.g. "ragmill 0.4.0"
 ```
 
 Or from Python:
@@ -55,7 +55,8 @@ ragmill search "termination clause" --top-k 5
 ```bash
 ragmill chat --top-k 5
 # you> summarize the refund policy
-# ragmill> ... [policy.pdf]
+# ragmill> Refunds are issued within 14 days of purchase. ...
+#          Sources: policy.pdf
 # (Ctrl+D or type 'exit' to quit)
 ```
 

@@ -40,8 +40,18 @@ most relevant chunks of your documents.
 
 ### What file types are supported?
 
-`.txt`, `.md`, `.log`, `.rst` (core), plus `.pdf` (`pdf` extra) and `.docx`
-(`docx` extra).
+Core (no extra): `.txt`, `.md`, `.log`, `.rst`, `.csv`, `.tsv`.
+
+With extras:
+
+- `.pdf` — `pdf` extra
+- `.docx` — `docx` extra
+- `.html`, `.htm`, `.rtf`, `.xlsx`, `.pptx` — `office` extra
+- `.png`, `.jpg`, `.jpeg`, `.tiff`, `.bmp`, `.gif`, and scanned/image-only PDFs (OCR) — `ocr` extra
+
+OCR needs the system `tesseract` binary (and `pdftoppm`/poppler for scanned
+PDFs), and is English-only by default. A scanned PDF with no text layer falls
+back to OCR automatically when the `ocr` extra is installed.
 
 ### How large a corpus can the SQLite store handle?
 
