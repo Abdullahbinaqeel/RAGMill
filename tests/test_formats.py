@@ -178,12 +178,14 @@ def test_engine_streams_new_formats(tmp_path):
 def test_engine_skips_textless_file_with_warning(tmp_path, caplog):
     import logging
 
-    p = tmp_path / "empty.pdf"
-    _build_text_pdf(p, "")  # no text layer, not an image → empty even after OCR
+    # An empty supported file deterministically yields no text, exercising the
+    # "no extractable text → skip with warning" branch without depending on any
+    # OCR binaries (a blank PDF's behaviour varies with tesseract/poppler).
+    (tmp_path / "empty.txt").write_text("   \n\n", encoding="utf-8")
 
     engine = RAGEngine()
     with caplog.at_level(logging.WARNING):
         filenames = [r["filename"] for r in engine.stream_directory(str(tmp_path))]
 
-    assert "empty.pdf" not in filenames
+    assert "empty.txt" not in filenames
     assert any("No extractable text" in rec.message for rec in caplog.records)
