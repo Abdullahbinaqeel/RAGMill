@@ -4,7 +4,7 @@
 
 <h1 align="center">RAGMill</h1>
 
-[![PyPI](https://img.shields.io/pypi/v/ragmill.svg)](https://pypi.org/project/ragmill/)
+[![PyPI](https://img.shields.io/pypi/v/ragmill.svg?cacheSeconds=3600)](https://pypi.org/project/ragmill/)
 [![CI](https://github.com/Abdullahbinaqeel/RAGMill/actions/workflows/ci.yml/badge.svg)](https://github.com/Abdullahbinaqeel/RAGMill/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/pypi/pyversions/ragmill.svg)](https://pypi.org/project/ragmill/)
