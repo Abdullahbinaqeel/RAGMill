@@ -3,6 +3,17 @@
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.0] - 2026-07-24
+
+### Added
+- Extended file-format support: `.csv`/`.tsv` (stdlib, no extra), plus `.html`/`.htm`, `.rtf`, `.xlsx`, and `.pptx` via the new `office` extra (`pip install ragmill[office]`).
+- OCR support via the new `ocr` extra (`pip install ragmill[ocr]`): text extraction from images (`.png`, `.jpg`, `.jpeg`, `.tiff`, `.bmp`, `.gif`) and automatic fallback to OCR for scanned/image-only PDFs (requires the system `tesseract` binary, and `pdftoppm`/poppler for PDFs).
+- DOCX extraction now also captures table cell text, not just paragraphs.
+
+### Changed
+- Chat answers now lead with a direct answer followed by a brief 2–4 sentence explanation, and no longer embed bracketed citation markers (`[1]`, `[report.pdf]`) — sources are listed separately by the caller.
+- The ingestion engine now skips files that yield no extractable text (e.g. scanned PDFs with no OCR result) with a warning instead of storing an empty document.
+
 ## [0.3.2] - 2026-07-22
 
 ### Fixed

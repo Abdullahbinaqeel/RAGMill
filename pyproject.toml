@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ragmill"
-version = "0.3.2"
+version = "0.4.0"
 description = "A lightweight, zero-config local pipeline engine for AI data ingestion, semantic chunking, embeddings, and vector search — with optional cloud backends and a REST API."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -72,6 +72,16 @@ config-ui = [
     "pydantic>=2.0",
     "numpy>=1.22.0",
 ]
+office = [
+    "beautifulsoup4>=4.12",
+    "striprtf>=0.0.26",
+    "openpyxl>=3.1",
+    "python-pptx>=1.0",
+]
+ocr = [
+    "pytesseract>=0.3.10",
+    "pillow>=10.0",
+]
 docs = [
     "mkdocs-material>=9.5",
 ]
@@ -91,6 +101,12 @@ all = [
     "google-genai>=1.0.0",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
+    "beautifulsoup4>=4.12",
+    "striprtf>=0.0.26",
+    "openpyxl>=3.1",
+    "python-pptx>=1.0",
+    "pytesseract>=0.3.10",
+    "pillow>=10.0",
 ]
 dev = [
     "pytest>=7.0",
@@ -114,6 +130,12 @@ dev = [
     "python-dotenv>=1.0.0",
     "qdrant-client>=1.9.0",
     "pinecone>=5.0",
+    "beautifulsoup4>=4.12",
+    "striprtf>=0.0.26",
+    "openpyxl>=3.1",
+    "python-pptx>=1.0",
+    "pytesseract>=0.3.10",
+    "pillow>=10.0",
 ]
 
 [project.scripts]

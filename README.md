@@ -297,7 +297,17 @@ see the setup UI above):
 
 ## Supported file types
 
-`.txt`, `.md`, `.log`, `.rst`, `.pdf`, `.docx`
+| Formats | Extra needed |
+|---|---|
+| `.txt`, `.md`, `.log`, `.rst`, `.csv`, `.tsv` | none (core) |
+| `.pdf` | `ragmill[pdf]` |
+| `.docx` | `ragmill[docx]` |
+| `.html`, `.htm`, `.rtf`, `.xlsx`, `.pptx` | `ragmill[office]` |
+| `.png`, `.jpg`, `.jpeg`, `.tiff`, `.bmp`, `.gif`, and scanned/image PDFs (OCR) | `ragmill[ocr]` |
+
+OCR requires the system `tesseract` binary (and `pdftoppm`/poppler for scanned
+PDFs); it is English-only by default. Scanned PDFs with no text layer fall back
+to OCR automatically when the `ocr` extra is installed.
 
 ## Project structure
 

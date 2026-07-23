@@ -9,13 +9,40 @@ import os
 import re
 from typing import List, Dict, Any, Generator
 
-from ragmill.parsers import extract_pdf_text, extract_docx_text
+from ragmill.parsers import (
+    extract_csv_text,
+    extract_docx_text,
+    extract_html_text,
+    extract_image_text,
+    extract_pdf_text,
+    extract_pptx_text,
+    extract_rtf_text,
+    extract_xlsx_text,
+)
 
 logger = logging.getLogger(__name__)
 
 PLAIN_TEXT_EXTENSIONS = (".txt", ".md", ".log", ".rst")
 PDF_EXTENSIONS = (".pdf",)
 DOCX_EXTENSIONS = (".docx",)
+CSV_EXTENSIONS = (".csv", ".tsv")
+HTML_EXTENSIONS = (".html", ".htm")
+RTF_EXTENSIONS = (".rtf",)
+XLSX_EXTENSIONS = (".xlsx",)
+PPTX_EXTENSIONS = (".pptx",)
+IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".gif")
+
+SUPPORTED_EXTENSIONS = (
+    PLAIN_TEXT_EXTENSIONS
+    + PDF_EXTENSIONS
+    + DOCX_EXTENSIONS
+    + CSV_EXTENSIONS
+    + HTML_EXTENSIONS
+    + RTF_EXTENSIONS
+    + XLSX_EXTENSIONS
+    + PPTX_EXTENSIONS
+    + IMAGE_EXTENSIONS
+)
 
 
 class RAGEngine:
@@ -46,17 +73,30 @@ class RAGEngine:
         for root, _, files in os.walk(directory_path):
             for file in files:
                 extension = os.path.splitext(file)[1].lower()
-                if extension not in PLAIN_TEXT_EXTENSIONS + PDF_EXTENSIONS + DOCX_EXTENSIONS:
+                if extension not in SUPPORTED_EXTENSIONS:
                     continue
 
                 full_path = os.path.join(root, file)
                 try:
                     content = self._extract_content(full_path, extension)
+                    stripped = content.strip()
+
+                    # A supported file that yields no text is almost always a
+                    # scanned/image PDF with no OCR result, or an empty doc.
+                    # Surface it instead of silently dropping the document.
+                    if not stripped:
+                        logger.warning(
+                            "No extractable text in %s — skipping. If this is a "
+                            "scanned/image file, ensure the 'ocr' extra and the "
+                            "tesseract/poppler binaries are installed.",
+                            full_path,
+                        )
+                        continue
 
                     yield {
                         "source_path": os.path.abspath(full_path),
                         "filename": file,
-                        "raw_content": content.strip(),
+                        "raw_content": stripped,
                         "modified_at": os.path.getmtime(full_path),
                     }
                 except Exception as e:
@@ -70,6 +110,18 @@ class RAGEngine:
             return extract_pdf_text(full_path)
         if extension in DOCX_EXTENSIONS:
             return extract_docx_text(full_path)
+        if extension in CSV_EXTENSIONS:
+            return extract_csv_text(full_path)
+        if extension in HTML_EXTENSIONS:
+            return extract_html_text(full_path)
+        if extension in RTF_EXTENSIONS:
+            return extract_rtf_text(full_path)
+        if extension in XLSX_EXTENSIONS:
+            return extract_xlsx_text(full_path)
+        if extension in PPTX_EXTENSIONS:
+            return extract_pptx_text(full_path)
+        if extension in IMAGE_EXTENSIONS:
+            return extract_image_text(full_path)
         raise ValueError(f"Unsupported extension: {extension}")
 
     def semantic_chunking(self, text: str) -> List[str]:

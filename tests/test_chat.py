@@ -21,15 +21,15 @@ def test_format_context_includes_filename_and_content():
         {"content": "beta content", "metadata": {"filename": "b.txt"}},
     ]
     formatted = chat._format_context(chunks)
-    assert "[1] (a.txt)" in formatted
+    assert "(Source: a.txt)" in formatted
     assert "alpha content" in formatted
-    assert "[2] (b.txt)" in formatted
+    assert "(Source: b.txt)" in formatted
     assert "beta content" in formatted
 
 
 def test_format_context_defaults_filename_to_unknown():
     formatted = chat._format_context([{"content": "x", "metadata": {}}])
-    assert "(unknown)" in formatted
+    assert "Source: unknown" in formatted
 
 
 def test_format_context_empty_list():

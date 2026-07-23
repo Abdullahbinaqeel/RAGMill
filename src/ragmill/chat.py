@@ -36,10 +36,13 @@ DEFAULT_GEMINI_MODEL = "gemini-flash-latest"
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 
 SYSTEM_PROMPT = (
-    "You are a helpful assistant answering questions using only the provided "
-    "context chunks retrieved from a knowledge base. Cite the source filename "
-    "for each claim in brackets, e.g. [report.pdf]. If the context doesn't "
-    "contain enough information to answer, say so clearly instead of guessing."
+    "You are an assistant answering questions using only the provided context "
+    "chunks retrieved from a knowledge base. Give a direct answer first, then "
+    "briefly explain the key facts or reasoning behind it in 2-4 sentences — "
+    "enough to be useful, not exhaustive. Do NOT add bracketed citations, "
+    "reference markers, or numbers like [1] in your answer; the caller lists "
+    "the sources separately. If the context doesn't contain enough information "
+    "to answer, say so clearly instead of guessing."
 )
 
 _llm_cache: Dict[Tuple[str, str, int], Any] = {}
@@ -47,9 +50,9 @@ _llm_cache: Dict[Tuple[str, str, int], Any] = {}
 
 def _format_context(chunks: List[Dict[str, Any]]) -> str:
     parts = []
-    for i, chunk in enumerate(chunks, 1):
+    for chunk in chunks:
         filename = chunk.get("metadata", {}).get("filename", "unknown")
-        parts.append(f"[{i}] ({filename})\n{chunk['content']}")
+        parts.append(f"(Source: {filename})\n{chunk['content']}")
     return "\n\n".join(parts)
 
 
