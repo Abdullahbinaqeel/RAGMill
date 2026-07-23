@@ -15,6 +15,40 @@ semantic chunking, embeddings, vector search, and retrieval-augmented chat
 backends (Pinecone, Qdrant), a REST API, a standalone setup UI, and Docker
 support.
 
+RAGMill takes a folder of documents and turns it into a searchable,
+question-answerable knowledge base in a few lines of Python — or entirely
+from the command line. It handles the full RAG pipeline end to end: parsing
+files, splitting them into overlapping semantic chunks, generating
+embeddings, storing vectors, retrieving the most relevant passages for a
+query, and generating grounded, cited answers on top of them. Everything
+runs on your machine out of the box; the cloud and hosted-LLM integrations
+are strictly opt-in.
+
+The core install has **zero dependencies** and works with `.txt`/`.md` files
+straight away. Every heavier capability — PDF/DOCX parsing, local ONNX
+embeddings, the local LLM, the REST server, and cloud backends — ships as an
+optional extra, so you only install what you actually use.
+
+### Highlights
+
+- **Offline-first, no keys required** — local embeddings (ONNX) and a local
+  LLM (Qwen2.5-1.5B via `llama-cpp-python`) run entirely on your machine.
+- **Full RAG pipeline** — ingest → chunk (configurable size/overlap) →
+  embed → store → semantic search → grounded chat, all in one package.
+- **Multiple file formats** — `.txt`, `.md`, `.log`, `.rst`, `.pdf`, `.docx`.
+- **Pluggable vector stores** — local SQLite by default; switch to Pinecone
+  or Qdrant with a couple of env vars, no code changes.
+- **Swappable chat backends** — local LLM, Gemini, or OpenAI, selected at
+  runtime via `RAGMILL_CHAT_BACKEND`.
+- **Incremental sync** — keep a store in step with a folder, adding,
+  updating, and deleting only what changed.
+- **Backend migration** — export a local store to JSONL and import it into a
+  cloud backend (or vice versa).
+- **Multiple interfaces** — a Python API, a `ragmill` CLI, a FastAPI REST
+  server (with a browser chatbox), and a standalone setup UI that writes your
+  `.env` for you.
+- **Docker-ready** — compose profiles for both SQLite and Qdrant.
+
 ## Install
 
 ```bash
