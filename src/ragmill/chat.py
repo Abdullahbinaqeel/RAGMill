@@ -52,17 +52,31 @@ _llm_cache: Dict[Tuple[str, str, int], Any] = {}
 # that actually works everywhere — a prebuilt wheel, no compiler — rather than
 # steering them to a different backend they did not ask for.
 LLAMA_WHEEL_INDEX = "https://abetlen.github.io/llama-cpp-python/whl/cpu"
-LLAMA_INSTALL_COMMAND = f"pip install llama-cpp-python --extra-index-url {LLAMA_WHEEL_INDEX}"
+
+# --only-binary is not optional. --extra-index-url merges the two indexes and pip
+# picks the highest version across both; PyPI carries a *newer* sdist-only release
+# than the wheel index carries wheels, so without it pip downloads the 70MB source
+# archive and tries to compile — the exact failure this whole route exists to
+# avoid. Restricting llama-cpp-python to wheels makes pip skip those versions.
+# Dependencies (numpy, jinja2, diskcache) still resolve normally from PyPI.
+LLAMA_INSTALL_ARGS = [
+    "llama-cpp-python",
+    "--extra-index-url",
+    LLAMA_WHEEL_INDEX,
+    "--only-binary",
+    "llama-cpp-python",
+]
+LLAMA_INSTALL_COMMAND = "pip install " + " ".join(LLAMA_INSTALL_ARGS)
 LOCAL_BACKEND_MISSING = (
     "The local chat model is not installed yet.\n\n"
-    "Install it with this command:\n\n"
+    "Install it by running:\n\n"
+    "  ragmill setup-chat\n\n"
+    "That fetches a prebuilt wheel — no compiler needed. It shows what it will "
+    "install and asks before doing anything.\n\n"
+    "To do it yourself instead:\n\n"
     f"  {LLAMA_INSTALL_COMMAND}\n\n"
     "Then run `ragmill chat` again. The first question downloads the model "
-    "(about 1.1GB); after that it runs fully offline.\n\n"
-    'Why this is a separate step: llama-cpp-python publishes no PyPI wheels, so "ragmill[all]" '
-    "cannot include it — pip would try to compile it from source, which needs a C++ toolchain "
-    "and fails on Windows on the 260-character path limit. The command above installs a "
-    "prebuilt wheel instead, so no compiler is involved."
+    "(about 1.1GB); after that it runs fully offline."
 )
 
 

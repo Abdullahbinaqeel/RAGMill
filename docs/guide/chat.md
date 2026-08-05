@@ -25,13 +25,28 @@ env-var change — no code change.
 ## Local (default, offline)
 
 The `chat` extra is deliberately **not** part of `[all]` — `llama-cpp-python` has
-no PyPI wheels, so pip would build it from source. Install a prebuilt wheel from
-the project's own index instead:
+no PyPI wheels, so pip would build it from source. Install the prebuilt wheel
+with:
 
 ```bash
-pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+ragmill setup-chat
 ragmill chat
 ```
+
+`setup-chat` prints the package, the index it comes from, and the exact pip
+command, then asks before installing anything (`--yes` skips the prompt). To run
+it yourself:
+
+```bash
+pip install llama-cpp-python \
+  --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu \
+  --only-binary llama-cpp-python
+```
+
+`--only-binary` is not optional. `--extra-index-url` merges both indexes and pip
+picks the highest version across them; PyPI carries a newer sdist-only release
+than the wheel index carries wheels, so without the flag pip downloads the 70 MB
+source archive and compiles it.
 
 `pip install "ragmill[chat]"` also works, but only if you have CMake and a C++
 compiler — and on Windows, long paths enabled. See
