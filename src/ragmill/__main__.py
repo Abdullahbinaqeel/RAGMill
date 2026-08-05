@@ -101,10 +101,19 @@ def cmd_search(args):
 
 
 def cmd_chat(args):
-    from ragmill.chat import generate_answer
+    from ragmill.chat import check_backend_available, generate_answer
     from ragmill.embeddings import EmbeddingModel
 
     cfg = _get_config()
+
+    # Check before the REPL starts. Failing inside the loop would throw away a
+    # question the user already typed and print a traceback for what is just a
+    # missing optional install.
+    try:
+        check_backend_available(cfg)
+    except ImportError as exc:
+        raise SystemExit(f"\n{exc}\n")
+
     store = _get_store(cfg)
     model = EmbeddingModel(model_name=cfg.embedding_model)
 

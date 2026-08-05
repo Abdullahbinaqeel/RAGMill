@@ -47,6 +47,24 @@ SYSTEM_PROMPT = (
 
 _llm_cache: Dict[Tuple[str, str, int], Any] = {}
 
+# The local backend is the default, so this is the first thing a new user hits
+# if they have not installed the model runtime. It leads with the one command
+# that actually works everywhere — a prebuilt wheel, no compiler — rather than
+# steering them to a different backend they did not ask for.
+LLAMA_WHEEL_INDEX = "https://abetlen.github.io/llama-cpp-python/whl/cpu"
+LLAMA_INSTALL_COMMAND = f"pip install llama-cpp-python --extra-index-url {LLAMA_WHEEL_INDEX}"
+LOCAL_BACKEND_MISSING = (
+    "The local chat model is not installed yet.\n\n"
+    "Install it with this command:\n\n"
+    f"  {LLAMA_INSTALL_COMMAND}\n\n"
+    "Then run `ragmill chat` again. The first question downloads the model "
+    "(about 1.1GB); after that it runs fully offline.\n\n"
+    'Why this is a separate step: llama-cpp-python publishes no PyPI wheels, so "ragmill[all]" '
+    "cannot include it — pip would try to compile it from source, which needs a C++ toolchain "
+    "and fails on Windows on the 260-character path limit. The command above installs a "
+    "prebuilt wheel instead, so no compiler is involved."
+)
+
 
 def _format_context(chunks: List[Dict[str, Any]]) -> str:
     parts = []
@@ -96,19 +114,7 @@ def _get_llm(repo_id: str, filename: str, n_ctx: int):
         try:
             from llama_cpp import Llama
         except ImportError as exc:
-            raise ImportError(
-                "The local chat backend needs llama-cpp-python, which is not part of "
-                '"ragmill[all]" because it publishes no PyPI wheels — pip would build it '
-                "from source, which needs a C++ toolchain and fails on Windows via the "
-                "260-character MAX_PATH limit.\n\n"
-                "Install a prebuilt wheel (no compiler needed):\n"
-                "  pip install llama-cpp-python --extra-index-url "
-                "https://abetlen.github.io/llama-cpp-python/whl/cpu\n\n"
-                'Or build from source if you have CMake and a C++ compiler: pip install "ragmill[chat]"\n'
-                "Or use a hosted backend instead, which needs no local model:\n"
-                '  pip install "ragmill[chat-gemini]"   # then set GEMINI_API_KEY\n'
-                '  pip install "ragmill[chat-openai]"   # then set OPENAI_API_KEY'
-            ) from exc
+            raise ImportError(LOCAL_BACKEND_MISSING) from exc
 
         model_path = _download_gguf(repo_id, filename, DEFAULT_CACHE_DIR)
         _llm_cache[key] = Llama(model_path=str(model_path), n_ctx=n_ctx, verbose=False)
@@ -233,3 +239,31 @@ def generate_answer(
         else "No relevant context was found in the knowledge base."
     )
     return backend(query, chunks, context, config)
+
+
+def check_backend_available(config: Optional["RAGMillConfig"] = None) -> None:
+    """Raise if the configured chat backend cannot run, before any work starts.
+
+    Without this the REPL accepts a question, embeds it, searches, and only then
+    discovers the model runtime is missing — so the user loses what they typed
+    and sees a traceback for an ordinary "not installed yet" state.
+    """
+    backend_name = (config.chat_backend if config else None) or os.getenv(
+        "RAGMILL_CHAT_BACKEND", "local"
+    )
+    if backend_name.lower() != "local":
+        return
+    import importlib.util
+    import sys
+
+    if "llama_cpp" in sys.modules:
+        return
+    try:
+        found = importlib.util.find_spec("llama_cpp") is not None
+    except (ImportError, ValueError):
+        # ValueError: present in sys.modules but with no __spec__. Treat any
+        # lookup failure as "not usable" rather than letting a probe crash the
+        # command it was meant to protect.
+        found = False
+    if not found:
+        raise ImportError(LOCAL_BACKEND_MISSING)
