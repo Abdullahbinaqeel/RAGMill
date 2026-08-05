@@ -3,6 +3,16 @@
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.0] - 2026-08-06
+
+### Added
+- `ragmill setup-chat` installs the local chat model runtime for you. It prints the package, the third-party index it comes from, and the exact pip command, then asks before installing anything (`--yes` skips the prompt, and is required when stdin is not a terminal). It installs into the interpreter running RAGMill rather than whichever `pip` is first on `PATH`, and verifies the module is importable afterwards instead of trusting pip's exit code.
+
+  This cannot happen during `pip install`: a wheel is unpacked, never executed, so Python packaging has no post-install hook — deliberately, since npm's `postinstall` became a supply-chain attack vector. Making it an explicit command also keeps the non-PyPI index visible and consented to, the way `playwright install` and `python -m spacy download` do.
+
+### Fixed
+- **The documented command for installing the local model did not work.** `pip install llama-cpp-python --extra-index-url …` resolves to `llama_cpp_python-0.3.34.tar.gz`, not a wheel: `--extra-index-url` merges both indexes and pip picks the highest version across them, and PyPI carries a newer sdist-only release than the wheel index carries wheels. So the workaround for the Windows build failure triggered that very build failure. Every place this command appears — the CLI error, README, installation guide, chat guide — now passes `--only-binary llama-cpp-python`, which makes pip skip versions that have no wheel.
+
 ## [0.4.3] - 2026-08-06
 
 ### Changed

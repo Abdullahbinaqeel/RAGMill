@@ -56,13 +56,25 @@ pip install ragmill
     Because it sits in its own extra, `pip install "ragmill[all]"` resolves to
     wheels only, on every platform.
 
-    **To get the local LLM anyway**, install a prebuilt wheel from the project's
-    own index — no compiler and no extraction of the vendored tree:
+    **To get the local LLM anyway**, run `ragmill setup-chat`, which fetches a
+    prebuilt wheel — no compiler and no extraction of the vendored tree:
 
     ```bash
-    pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
     pip install "ragmill[all]"
+    ragmill setup-chat
     ```
+
+    It shows the package, the index, and the pip command, and asks before
+    installing. The equivalent by hand:
+
+    ```bash
+    pip install llama-cpp-python \
+      --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu \
+      --only-binary llama-cpp-python
+    ```
+
+    `--only-binary` is required — without it pip picks PyPI's newer sdist-only
+    release over the wheels on that index and compiles it.
 
     Prefer to build from source? You need CMake plus a C++ compiler (on Windows,
     the Visual Studio Build Tools "Desktop development with C++" workload), and

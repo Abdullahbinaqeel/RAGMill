@@ -23,7 +23,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-config_app = FastAPI(title="RAGMill Setup", version="0.4.3")
+config_app = FastAPI(title="RAGMill Setup", version="0.5.0")
 
 STATIC_DIR = Path(__file__).parent / "config_ui_static"
 

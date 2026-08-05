@@ -551,9 +551,15 @@ class TestLocalBackendMissingFlow:
 
     def test_message_leads_with_the_install_command(self):
         msg = chat.LOCAL_BACKEND_MISSING
+        # `ragmill setup-chat` is the easy path, so it comes first; the raw pip
+        # command follows for anyone who would rather run it themselves.
+        assert "ragmill setup-chat" in msg
         assert chat.LLAMA_INSTALL_COMMAND in msg
-        # the command appears before any explanation of why
-        assert msg.index(chat.LLAMA_INSTALL_COMMAND) < msg.index("Why this is a separate step")
+        assert msg.index("ragmill setup-chat") < msg.index(chat.LLAMA_INSTALL_COMMAND)
+
+    def test_manual_command_in_the_message_forces_a_wheel(self):
+        """The message must not hand out the command that compiles from source."""
+        assert "--only-binary llama-cpp-python" in chat.LLAMA_INSTALL_COMMAND
 
     def test_message_does_not_push_a_different_backend(self):
         msg = chat.LOCAL_BACKEND_MISSING.lower()

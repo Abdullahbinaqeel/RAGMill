@@ -78,13 +78,26 @@ pip install ragmill[config-ui]               # + standalone setup UI (writes .en
 > ```
 >
 > Keeping it out of `[all]` means `pip install ragmill[all]` installs from wheels
-> alone on every platform. To add the local LLM, install a prebuilt wheel from the
-> project's own index — no compiler, no long-path problem:
+> alone on every platform. To add the local LLM afterwards:
 >
 > ```bash
-> pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
 > pip install ragmill[all]
+> ragmill setup-chat
 > ```
+>
+> `setup-chat` shows what it will install and from where, asks for confirmation,
+> then fetches a prebuilt wheel — no compiler, no long-path problem. To do it by
+> hand:
+>
+> ```bash
+> pip install llama-cpp-python \
+>   --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu \
+>   --only-binary llama-cpp-python
+> ```
+>
+> The `--only-binary` flag is required: without it pip resolves the newer
+> sdist-only release from PyPI and tries to compile it, which is the failure this
+> avoids.
 >
 > `ragmill[chat]` still works if you have a working C++ toolchain (and, on
 > Windows, long paths enabled).

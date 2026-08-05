@@ -206,3 +206,133 @@ def test_help_and_invalid_command(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["ragmill", "invalidcommand"])
     with pytest.raises(SystemExit):
         cli.main()
+
+
+# ── setup-chat: explicit, consented install of the local model ───────────────
+
+
+class TestSetupChat:
+    """Python packaging has no post-install hook, so this is a command.
+
+    Because it adds a non-PyPI index, it must show what it will do and get
+    agreement first — an invisible fetch from a third-party index is the pattern
+    setuptools' dependency_links was removed for.
+    """
+
+    def _args(self, yes=False):
+        class Args:
+            pass
+
+        a = Args()
+        a.yes = yes
+        return a
+
+    def test_install_command_forces_a_wheel(self):
+        """Without --only-binary, pip picks PyPI's newer sdist and compiles it.
+
+        --extra-index-url merges indexes and resolves the highest version across
+        both. PyPI carries a newer sdist-only release than the wheel index
+        carries wheels, so omitting this flag downloads the 70MB source archive
+        — the exact MAX_PATH failure this route exists to avoid.
+        """
+        from ragmill import chat
+
+        assert "--only-binary" in chat.LLAMA_INSTALL_ARGS
+        i = chat.LLAMA_INSTALL_ARGS.index("--only-binary")
+        assert chat.LLAMA_INSTALL_ARGS[i + 1] == "llama-cpp-python"
+        assert "--extra-index-url" in chat.LLAMA_INSTALL_ARGS
+
+    def test_reports_and_exits_when_already_installed(self, monkeypatch, caplog):
+        from ragmill import __main__ as cli
+
+        monkeypatch.setattr(cli, "_llama_cpp_present", lambda: True)
+        called = []
+        monkeypatch.setattr("subprocess.run", lambda *a, **k: called.append(a))
+
+        with caplog.at_level(logging.INFO):
+            cli.cmd_setup_chat(self._args())
+
+        assert "already installed" in caplog.text
+        assert not called, "must not shell out to pip when already installed"
+
+    def test_declining_installs_nothing(self, monkeypatch):
+        from ragmill import __main__ as cli
+
+        monkeypatch.setattr(cli, "_llama_cpp_present", lambda: False)
+        monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+        monkeypatch.setattr("builtins.input", lambda prompt="": "n")
+        called = []
+        monkeypatch.setattr("subprocess.run", lambda *a, **k: called.append(a))
+
+        with pytest.raises(SystemExit, match="Cancelled"):
+            cli.cmd_setup_chat(self._args())
+        assert not called
+
+    def test_non_interactive_requires_explicit_yes(self, monkeypatch):
+        from ragmill import __main__ as cli
+
+        monkeypatch.setattr(cli, "_llama_cpp_present", lambda: False)
+        monkeypatch.setattr("sys.stdin.isatty", lambda: False)
+        called = []
+        monkeypatch.setattr("subprocess.run", lambda *a, **k: called.append(a))
+
+        with pytest.raises(SystemExit, match="--yes"):
+            cli.cmd_setup_chat(self._args())
+        assert not called, "must not install unattended without consent"
+
+    def test_yes_installs_into_the_running_interpreter(self, monkeypatch, caplog):
+        """Not a bare `pip` from PATH — that can target a different environment."""
+        import sys as _sys
+
+        from ragmill import __main__ as cli
+        from ragmill import chat
+
+        present = iter([False, True])
+        monkeypatch.setattr(cli, "_llama_cpp_present", lambda: next(present))
+        seen = {}
+
+        class _Ok:
+            returncode = 0
+
+        def _fake_run(cmd, *a, **k):
+            seen["cmd"] = cmd
+            return _Ok()
+
+        monkeypatch.setattr("subprocess.run", _fake_run)
+
+        with caplog.at_level(logging.INFO):
+            cli.cmd_setup_chat(self._args(yes=True))
+
+        assert seen["cmd"][:4] == [_sys.executable, "-m", "pip", "install"]
+        assert seen["cmd"][4:] == chat.LLAMA_INSTALL_ARGS
+
+    def test_pip_failure_suggests_a_hosted_backend(self, monkeypatch):
+        """Most likely cause is a Python with no wheel on that index."""
+        from ragmill import __main__ as cli
+
+        monkeypatch.setattr(cli, "_llama_cpp_present", lambda: False)
+
+        class _Fail:
+            returncode = 1
+
+        monkeypatch.setattr("subprocess.run", lambda *a, **k: _Fail())
+
+        with pytest.raises(SystemExit) as excinfo:
+            cli.cmd_setup_chat(self._args(yes=True))
+
+        msg = str(excinfo.value)
+        assert "no prebuilt wheel" in msg
+        assert "RAGMILL_CHAT_BACKEND=gemini" in msg
+
+    def test_detects_pip_lying_about_success(self, monkeypatch):
+        from ragmill import __main__ as cli
+
+        monkeypatch.setattr(cli, "_llama_cpp_present", lambda: False)
+
+        class _Ok:
+            returncode = 0
+
+        monkeypatch.setattr("subprocess.run", lambda *a, **k: _Ok())
+
+        with pytest.raises(SystemExit, match="still cannot be imported"):
+            cli.cmd_setup_chat(self._args(yes=True))
