@@ -120,7 +120,9 @@ def test_import_nonexistent_file_raises(monkeypatch, tmp_path):
         _run(monkeypatch, ["import", str(tmp_path / "nonexistent.jsonl")])
 
 
-def test_chat_repl_uses_mocked_generator(monkeypatch, tmp_path, caplog, mock_llm):
+def test_chat_repl_uses_mocked_generator(
+    monkeypatch, tmp_path, caplog, mock_llm, chat_backend_available
+):
     pytest.importorskip("onnxruntime")
     pytest.importorskip("tokenizers")
     monkeypatch.setenv("RAGMILL_SQLITE_PATH", str(tmp_path / "cli.db"))
@@ -136,7 +138,7 @@ def test_chat_repl_uses_mocked_generator(monkeypatch, tmp_path, caplog, mock_llm
     assert len(mock_llm.calls) == 1
 
 
-def test_chat_repl_exits_on_eof(monkeypatch, tmp_path, caplog):
+def test_chat_repl_exits_on_eof(monkeypatch, tmp_path, caplog, chat_backend_available):
     monkeypatch.setenv("RAGMILL_SQLITE_PATH", str(tmp_path / "cli.db"))
 
     def _raise_eof(prompt=""):
