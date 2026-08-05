@@ -186,7 +186,9 @@ def test_missing_llama_cpp_raises_helpful_import_error(monkeypatch, tmp_path):
 
     monkeypatch.setattr(builtins, "__import__", _blocking_import)
 
-    with pytest.raises(ImportError, match="ragmill\\[chat\\]"):
+    # Points at the prebuilt wheel, not `ragmill[chat]` — that is a source build
+    # and is exactly what fails on Windows.
+    with pytest.raises(ImportError, match="llama-cpp-python --extra-index-url"):
         chat.generate_answer("q", [])
 
 
@@ -535,35 +537,64 @@ def test_generate_answer_real_local_model():
     assert isinstance(answer, str) and len(answer) > 0
 
 
-# ── Missing llama-cpp-python gives actionable install guidance ───────────────
+# ── Missing local model: guide to the install, do not derail to a backend ────
 
 
-def test_missing_llama_cpp_points_at_a_command_that_works(monkeypatch):
-    """The error must not send users to `pip install ragmill[chat]` alone.
+class TestLocalBackendMissingFlow:
+    """A missing optional install is a routine state, not a crash.
 
-    llama-cpp-python left the `all` extra in 0.4.1 because it has no PyPI
-    wheels, so more users now reach this path. On Windows `pip install
-    "ragmill[chat]"` is exactly the command that dies on MAX_PATH, so pointing
-    only there is a dead end — the message has to name the prebuilt wheel index
-    (and the hosted backends, which need no local model at all).
+    The local backend is the default, so this is what a new user hits first.
+    The message must hand them the one command that works (a prebuilt wheel),
+    not steer them to Gemini/OpenAI — they asked for local chat — and not print
+    a traceback for something that is simply not installed yet.
     """
-    import builtins
 
-    chat._llm_cache.clear()
-    real_import = builtins.__import__
+    def test_message_leads_with_the_install_command(self):
+        msg = chat.LOCAL_BACKEND_MISSING
+        assert chat.LLAMA_INSTALL_COMMAND in msg
+        # the command appears before any explanation of why
+        assert msg.index(chat.LLAMA_INSTALL_COMMAND) < msg.index("Why this is a separate step")
 
-    def _no_llama(name, *args, **kwargs):
-        if name == "llama_cpp":
-            raise ImportError("No module named 'llama_cpp'")
-        return real_import(name, *args, **kwargs)
+    def test_message_does_not_push_a_different_backend(self):
+        msg = chat.LOCAL_BACKEND_MISSING.lower()
+        for other in ("gemini", "openai", "chat-gemini", "chat-openai"):
+            assert other not in msg, f"local-model error mentions {other}"
 
-    monkeypatch.setattr(builtins, "__import__", _no_llama)
+    def test_check_is_silent_when_llama_cpp_is_importable(self, monkeypatch):
+        import sys
+        import types
 
-    with pytest.raises(ImportError) as excinfo:
-        chat._get_llm("some/repo", "model.gguf", 2048)
+        monkeypatch.setitem(sys.modules, "llama_cpp", types.ModuleType("llama_cpp"))
+        chat.check_backend_available()  # must not raise
 
-    msg = str(excinfo.value)
-    assert "abetlen.github.io/llama-cpp-python/whl/cpu" in msg, msg
-    assert "chat-gemini" in msg and "chat-openai" in msg, msg
-    # explains *why* it is not bundled, so the omission does not read as a bug
-    assert "MAX_PATH" in msg or "no PyPI wheels" in msg, msg
+    def test_check_raises_before_any_work_when_missing(self, monkeypatch):
+        monkeypatch.setattr("importlib.util.find_spec", lambda name: None)
+        monkeypatch.delenv("RAGMILL_CHAT_BACKEND", raising=False)
+
+        with pytest.raises(ImportError) as excinfo:
+            chat.check_backend_available()
+
+        assert chat.LLAMA_INSTALL_COMMAND in str(excinfo.value)
+
+    def test_check_skips_hosted_backends(self, monkeypatch):
+        """A Gemini user must not be told to install a local model."""
+        monkeypatch.setattr("importlib.util.find_spec", lambda name: None)
+        monkeypatch.setenv("RAGMILL_CHAT_BACKEND", "gemini")
+        chat.check_backend_available()  # must not raise
+
+    def test_cli_exits_cleanly_instead_of_raising(self, monkeypatch, tmp_path):
+        """No traceback, exit code 1, message on the way out."""
+        from ragmill import __main__ as cli
+
+        monkeypatch.setattr("importlib.util.find_spec", lambda name: None)
+        monkeypatch.delenv("RAGMILL_CHAT_BACKEND", raising=False)
+        monkeypatch.setenv("RAGMILL_SQLITE_PATH", str(tmp_path / "c.db"))
+
+        class Args:
+            top_k = 5
+
+        with pytest.raises(SystemExit) as excinfo:
+            cli.cmd_chat(Args())
+
+        assert chat.LLAMA_INSTALL_COMMAND in str(excinfo.value)
+        assert "Traceback" not in str(excinfo.value)

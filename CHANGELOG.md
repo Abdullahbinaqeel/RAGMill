@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.3] - 2026-08-06
+
+### Changed
+- `ragmill chat` now checks the configured backend **before** starting the REPL. Previously a missing local model was only discovered after you had typed a question — the question was lost and a raw Python traceback was printed for what is simply an optional package not being installed yet. It now exits cleanly with status 1 and a message.
+- The "local model not installed" message leads with the single command that installs it (`pip install llama-cpp-python --extra-index-url …`) and no longer suggests the Gemini or OpenAI backends. Someone running the local backend asked for local chat; offering a hosted service that needs an API key is a detour, not an answer. It also no longer suggests `pip install "ragmill[chat]"`, which is a source build and the exact thing that fails on Windows.
+
 ## [0.4.2] - 2026-08-06
 
 ### Fixed

@@ -41,7 +41,7 @@ from ragmill.vector_store import store_from_config
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="RAGMill", version="0.4.2")
+app = FastAPI(title="RAGMill", version="0.4.3")
 
 STATIC_DIR = Path(__file__).parent / "static"
 
