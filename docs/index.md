@@ -9,12 +9,12 @@
 
 <p align="center"><em>A lightweight, zero-config local pipeline for AI data ingestion, semantic chunking, embeddings, vector search, and retrieval-augmented chat.</em></p>
 
-!!! tip "Latest release: v0.4.0"
+!!! tip "Latest release: v0.4.1"
     `pip install ragmill` ships the full CLI, REST API, retrieval-augmented
     chat, and Pinecone/Qdrant backends. v0.4.0 adds spreadsheets, slides,
     HTML, CSV, and RTF (via the `office` extra) plus OCR for images and
-    scanned PDFs (via the `ocr` extra). See the [Changelog](changelog.md) for
-    everything new.
+    scanned PDFs (via the `ocr` extra); v0.4.1 fixes `pip install ragmill[all]`
+    on clean machines. See the [Changelog](changelog.md) for everything new.
 
 <div class="grid cards" markdown>
 

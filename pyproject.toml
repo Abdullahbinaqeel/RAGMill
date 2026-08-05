@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ragmill"
-version = "0.4.0"
+version = "0.4.1"
 description = "A lightweight, zero-config local pipeline engine for AI data ingestion, semantic chunking, embeddings, and vector search — with optional cloud backends and a REST API."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -56,6 +56,11 @@ server = [
     "python-multipart>=0.0.9",
     "python-dotenv>=1.0.0",
 ]
+# Source-only dependency: llama-cpp-python publishes no PyPI wheels for recent
+# versions, so pip builds it from a 70MB+ sdist that vendors llama.cpp. That
+# needs a C++ toolchain, and on Windows the vendored tree exceeds the 260-char
+# MAX_PATH limit during extraction. Kept out of `all` and `dev` for that reason
+# — see TestAllExtraIsWheelInstallable in tests/test_review_fixes.py.
 chat = [
     "llama-cpp-python>=0.3.0",
 ]
@@ -97,7 +102,6 @@ all = [
     "python-multipart>=0.0.9",
     "pinecone>=5.0",
     "qdrant-client>=1.9.0",
-    "llama-cpp-python>=0.3.0",
     "google-genai>=1.0.0",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
@@ -107,6 +111,9 @@ all = [
     "python-pptx>=1.0",
     "pytesseract>=0.3.10",
     "pillow>=10.0",
+    # NOTE: the `chat` extra (llama-cpp-python, the local LLM) is deliberately
+    # NOT included here — it has no PyPI wheels and cannot install on a stock
+    # machine. Add it separately: pip install "ragmill[chat]" (see README).
 ]
 dev = [
     "pytest>=7.0",
@@ -124,7 +131,9 @@ dev = [
     "uvicorn[standard]>=0.27.0",
     "pydantic>=2.0",
     "python-multipart>=0.0.9",
-    "llama-cpp-python>=0.3.0",
+    # llama-cpp-python is intentionally absent: the local-chat tests fake the
+    # `llama_cpp` module via sys.modules, so the real package is never needed,
+    # and requiring it would make `[dev]` uninstallable on Windows.
     "google-genai>=1.0.0",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",

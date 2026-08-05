@@ -24,10 +24,19 @@ env-var change — no code change.
 
 ## Local (default, offline)
 
+The `chat` extra is deliberately **not** part of `[all]` — `llama-cpp-python` has
+no PyPI wheels, so pip would build it from source. Install a prebuilt wheel from
+the project's own index instead:
+
 ```bash
-pip install "ragmill[chat]"
+pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
 ragmill chat
 ```
+
+`pip install "ragmill[chat]"` also works, but only if you have CMake and a C++
+compiler — and on Windows, long paths enabled. See
+[Installation](../installation.md) for the details and the exact error you'll get
+without them.
 
 First call downloads the GGUF model; subsequent calls are offline. Override the
 model with `RAGMILL_CHAT_MODEL_REPO` / `RAGMILL_CHAT_MODEL_FILE`, and the context

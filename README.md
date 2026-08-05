@@ -35,7 +35,10 @@ optional extra, so you only install what you actually use.
   LLM (Qwen2.5-1.5B via `llama-cpp-python`) run entirely on your machine.
 - **Full RAG pipeline** — ingest → chunk (configurable size/overlap) →
   embed → store → semantic search → grounded chat, all in one package.
-- **Multiple file formats** — `.txt`, `.md`, `.log`, `.rst`, `.pdf`, `.docx`.
+- **Multiple file formats** — text (`.txt`, `.md`, `.log`, `.rst`), data
+  (`.csv`, `.tsv`), documents (`.pdf`, `.docx`, `.rtf`, `.html`), office
+  (`.xlsx`, `.pptx`), and images (`.png`, `.jpg`, `.tiff`, …) plus scanned
+  PDFs via OCR.
 - **Pluggable vector stores** — local SQLite by default; switch to Pinecone
   or Qdrant with a couple of env vars, no code changes.
 - **Swappable chat backends** — local LLM, Gemini, or OpenAI, selected at
@@ -53,9 +56,9 @@ optional extra, so you only install what you actually use.
 
 ```bash
 pip install ragmill                          # core only (txt/md), zero dependencies
-pip install ragmill[all]                     # everything (PDF, DOCX, embeddings, chat, server, cloud backends)
+pip install ragmill[all]                     # everything installable from wheels (PDF, DOCX, embeddings, server, cloud backends)
 pip install ragmill[embeddings]              # + local ONNX embeddings
-pip install ragmill[chat]                    # + local LLM for retrieval-augmented answers (no API key)
+pip install ragmill[chat]                    # + local LLM for retrieval-augmented answers (no API key) — see note below
 pip install ragmill[chat-gemini]             # + Gemini as the chat backend (needs GEMINI_API_KEY)
 pip install ragmill[chat-openai]             # + ChatGPT as the chat backend (needs OPENAI_API_KEY)
 pip install ragmill[pinecone]                # + Pinecone cloud backend
@@ -63,6 +66,28 @@ pip install ragmill[qdrant]                  # + Qdrant cloud backend
 pip install ragmill[server]                  # + FastAPI REST API
 pip install ragmill[config-ui]               # + standalone setup UI (writes .env)
 ```
+
+> **`[all]` does not include the local LLM.** `llama-cpp-python` publishes no PyPI
+> wheels for recent versions, so pip builds it from a 70 MB+ source archive that
+> vendors llama.cpp — which needs a C++ toolchain, and on Windows overruns the
+> 260-character `MAX_PATH` limit while unpacking:
+>
+> ```
+> ERROR: Could not install packages due to an OSError: [Errno 2]
+> No such file or directory: 'C:\\Users\\...\\vendor\\llama.cpp\\tools\\ui\\...'
+> ```
+>
+> Keeping it out of `[all]` means `pip install ragmill[all]` installs from wheels
+> alone on every platform. To add the local LLM, install a prebuilt wheel from the
+> project's own index — no compiler, no long-path problem:
+>
+> ```bash
+> pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+> pip install ragmill[all]
+> ```
+>
+> `ragmill[chat]` still works if you have a working C++ toolchain (and, on
+> Windows, long paths enabled).
 
 ## Quick start
 

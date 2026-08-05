@@ -24,7 +24,7 @@ ragmill <command> [args]
 ## Checking the installed version
 
 ```bash
-ragmill --version          # e.g. "ragmill 0.4.0"
+ragmill --version          # e.g. "ragmill 0.4.1"
 ```
 
 Or from Python:

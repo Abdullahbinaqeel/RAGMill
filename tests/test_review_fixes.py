@@ -1510,6 +1510,57 @@ class TestConfigUiExtra:
         assert "python-dotenv" in base_names
 
 
+# ── Regression: `all` and `dev` must install without a C++ toolchain ───────
+
+
+class TestAllExtraIsWheelInstallable:
+    """`pip install ragmill[all]` must not pull a source-only dependency.
+
+    llama-cpp-python ships no PyPI wheels for recent versions, so pip falls back
+    to a 70MB+ sdist that vendors llama.cpp. Building it needs a C++ toolchain,
+    and on Windows the vendored tree blows past the 260-char MAX_PATH limit
+    during extraction, so `pip install ragmill[all]` died with
+    "OSError: [Errno 2] No such file or directory" before it installed anything.
+
+    The local LLM stays available via the opt-in `chat` extra.
+    """
+
+    # Dependencies that cannot be relied on to resolve to a wheel.
+    SOURCE_ONLY = {"llama-cpp-python"}
+
+    def _dep_names(self, extra):
+        pyproject = Path(__file__).parent.parent / "pyproject.toml"
+        data = tomllib.loads(pyproject.read_text())
+        deps = data["project"]["optional-dependencies"][extra]
+        names = [d.split(">=")[0].split("==")[0].split(";")[0].strip() for d in deps]
+        return [n.split("[")[0] for n in names]
+
+    @pytest.mark.parametrize("extra", ["all", "dev"])
+    def test_extra_has_no_source_only_dependency(self, extra):
+        offenders = self.SOURCE_ONLY.intersection(self._dep_names(extra))
+        assert not offenders, (
+            f"The '{extra}' extra pulls source-only package(s) {sorted(offenders)}, "
+            f"which breaks 'pip install ragmill[{extra}]' on machines without a "
+            "C++ toolchain (and on Windows, via MAX_PATH). Keep them in 'chat'."
+        )
+
+    def test_chat_extra_still_provides_the_local_llm(self):
+        assert "llama-cpp-python" in self._dep_names("chat")
+
+    def test_all_extra_still_covers_every_other_optional_feature(self):
+        """Removing llama-cpp-python must not have dropped anything else."""
+        pyproject = Path(__file__).parent.parent / "pyproject.toml"
+        data = tomllib.loads(pyproject.read_text())
+        extras = data["project"]["optional-dependencies"]
+        aggregated = set(self._dep_names("all"))
+        # every feature extra except the opt-in local LLM and doc/dev tooling
+        for name in extras:
+            if name in {"all", "dev", "docs", "chat"}:
+                continue
+            for dep in self._dep_names(name):
+                assert dep in aggregated, f"'{dep}' from extra '{name}' is missing from 'all'"
+
+
 # ── MAJOR 9: Pinecone environment is honored ──────────────────────────────
 
 
