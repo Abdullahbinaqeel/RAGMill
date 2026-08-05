@@ -14,6 +14,10 @@ from ragmill import RAGEngine
 
 HAS_TESSERACT = shutil.which("tesseract") is not None
 
+# Text layers used by the PDF fixtures below. Each must stay longer than
+# parsers.PDF_OCR_MIN_CHARS — see test_pdf_fixtures_clear_the_ocr_threshold.
+PDF_FIXTURE_TEXTS = ("pdf content", "pdf body content", "zeta eta theta")
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
@@ -164,6 +168,24 @@ def test_pdf(tmp_path):
     assert "pdf content" in docs["doc.pdf"]
 
 
+def test_pdf_fixtures_clear_the_ocr_threshold():
+    """Every PDF fixture here must have a text layer longer than PDF_OCR_MIN_CHARS.
+
+    Below that, extract_pdf_text() concludes the PDF is scanned and falls back to
+    OCR, which needs poppler's `pdftoppm` and tesseract on the host. Fixtures
+    under the threshold therefore pass on a dev machine with brew-installed
+    binaries and fail in CI, which has neither.
+    """
+    from ragmill.parsers import PDF_OCR_MIN_CHARS
+
+    for text in PDF_FIXTURE_TEXTS:
+        assert len(text) > PDF_OCR_MIN_CHARS, (
+            f"PDF fixture {text!r} is {len(text)} chars, at or under the "
+            f"{PDF_OCR_MIN_CHARS}-char OCR threshold; it would exercise the OCR "
+            "fallback instead of the text-layer path. Lengthen the fixture."
+        )
+
+
 @pytest.mark.skipif(not HAS_TESSERACT, reason="requires tesseract binary")
 def test_png(tmp_path):
     pytest.importorskip("pytesseract")
@@ -241,7 +263,10 @@ def test_binary_types_yield_chunks(tmp_path, filename, needs_extras):
         from reportlab.pdfgen import canvas
 
         c = canvas.Canvas(str(tmp_path / filename))
-        c.drawString(100, 750, "content")
+        # Must exceed PDF_OCR_MIN_CHARS, or extract_pdf_text treats the PDF as
+        # scanned and falls back to OCR — which needs poppler and tesseract, so
+        # this test would then fail on any machine without them.
+        c.drawString(100, 750, "pdf body content")
         c.save()
     engine = RAGEngine(chunk_size=500, overlap=50)
     payloads = engine.execute_pipeline(str(tmp_path))
@@ -296,7 +321,9 @@ def test_mixed_directory_processes_all_formats(tmp_path):
     doc.add_paragraph("epsilon")
     doc.save(str(tmp_path / "g.docx"))
     c = canvas.Canvas(str(tmp_path / "h.pdf"))
-    c.drawString(100, 750, "zeta")
+    # Longer than PDF_OCR_MIN_CHARS so this exercises the text-layer path rather
+    # than the OCR fallback (see test_binary_types_yield_chunks).
+    c.drawString(100, 750, "zeta eta theta")
     c.save()
     (tmp_path / "ignore.bin").write_bytes(b"\x00")
 
