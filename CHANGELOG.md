@@ -3,6 +3,11 @@
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.1] - 2026-08-05
+
+### Fixed
+- `pip install ragmill[all]` no longer fails on a clean machine. The `all` (and `dev`) extras pulled `llama-cpp-python`, which ships no PyPI wheels for recent versions, so pip fell back to a 70MB+ sdist that vendors llama.cpp — that needs a C++ toolchain, and on Windows the vendored tree exceeds the 260-char `MAX_PATH` limit, aborting the whole install with `OSError: [Errno 2] No such file or directory`. The local LLM is now opt-in only: `pip install "ragmill[chat]"`.
+
 ## [0.4.0] - 2026-07-24
 
 ### Added

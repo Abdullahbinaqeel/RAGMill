@@ -61,8 +61,6 @@ def test_generate_answer_uses_mocked_llm(monkeypatch, tmp_path):
     monkeypatch.setattr(
         chat, "_download_gguf", lambda repo, filename, cache_dir: tmp_path / filename
     )
-    monkeypatch.setattr("llama_cpp.Llama", _FakeLlama, raising=False)
-
     import sys
     import types
 

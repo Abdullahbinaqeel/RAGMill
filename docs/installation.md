@@ -33,13 +33,49 @@ pip install ragmill
 | `pip install "ragmill[ocr]"` | `pytesseract`, `pillow` | OCR for images (`.png` / `.jpg` / …) and scanned/image-only PDFs |
 | `pip install "ragmill[embeddings]"` | `onnxruntime`, `numpy`, `tokenizers` | local embeddings + vector search |
 | `pip install "ragmill[server]"` | `fastapi`, `uvicorn`, `pydantic` | the REST API |
-| `pip install "ragmill[chat]"` | `llama-cpp-python` | local LLM answers (no API key) |
+| `pip install "ragmill[chat]"` | `llama-cpp-python` | local LLM answers (no API key) — **not in `[all]`**, see below |
 | `pip install "ragmill[chat-gemini]"` | `google-genai` | Gemini as the chat backend |
 | `pip install "ragmill[chat-openai]"` | `openai` | OpenAI/ChatGPT as the chat backend |
 | `pip install "ragmill[pinecone]"` | `pinecone` | Pinecone cloud vector store |
 | `pip install "ragmill[qdrant]"` | `qdrant-client` | Qdrant vector store |
 | `pip install "ragmill[config-ui]"` | `python-dotenv` | standalone setup UI that writes `.env` |
-| `pip install "ragmill[all]"` | all of the above | you want everything |
+| `pip install "ragmill[all]"` | everything above **except `chat`** | you want everything that installs from wheels |
+
+!!! warning "`[all]` excludes the local LLM — on purpose"
+    `llama-cpp-python` publishes no PyPI wheels for recent versions, so pip falls
+    back to a 70 MB+ source archive that vendors llama.cpp. Building it needs a
+    C++ toolchain, and on Windows the vendored tree exceeds the 260-character
+    `MAX_PATH` limit while unpacking, so the install dies before anything is
+    installed:
+
+    ```
+    ERROR: Could not install packages due to an OSError: [Errno 2]
+    No such file or directory: 'C:\\Users\\...\\vendor\\llama.cpp\\tools\\ui\\...'
+    ```
+
+    Because it sits in its own extra, `pip install "ragmill[all]"` resolves to
+    wheels only, on every platform.
+
+    **To get the local LLM anyway**, install a prebuilt wheel from the project's
+    own index — no compiler and no extraction of the vendored tree:
+
+    ```bash
+    pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+    pip install "ragmill[all]"
+    ```
+
+    Prefer to build from source? You need CMake plus a C++ compiler (on Windows,
+    the Visual Studio Build Tools "Desktop development with C++" workload), and
+    long paths enabled:
+
+    ```powershell
+    # PowerShell as Administrator, then reboot
+    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+      -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force
+    ```
+
+    Or sidestep the local model entirely — `[chat-gemini]` and `[chat-openai]`
+    are pure-Python and are both included in `[all]`.
 
 !!! tip "Combine extras"
     Extras compose: `pip install "ragmill[embeddings,server,pdf]"` gets you
