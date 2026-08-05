@@ -18,6 +18,7 @@ from ragmill.parsers import (
     extract_pptx_text,
     extract_rtf_text,
     extract_xlsx_text,
+    read_text_file,
 )
 
 logger = logging.getLogger(__name__)
@@ -104,8 +105,7 @@ class RAGEngine:
 
     def _extract_content(self, full_path: str, extension: str) -> str:
         if extension in PLAIN_TEXT_EXTENSIONS:
-            with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
-                return f.read()
+            return read_text_file(full_path)
         if extension in PDF_EXTENSIONS:
             return extract_pdf_text(full_path)
         if extension in DOCX_EXTENSIONS:
