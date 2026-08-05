@@ -48,6 +48,19 @@ def temp_env_file(tmp_path):
 
 
 @pytest.fixture
+def chat_backend_available(monkeypatch):
+    """Stub out the `ragmill chat` pre-flight backend check.
+
+    cmd_chat verifies the chat backend can actually run before opening the REPL.
+    Tests that supply their own mocked generate_answer are exercising the REPL,
+    not the runtime, so they must not depend on llama-cpp-python being installed
+    on the machine running the suite — it is absent from `dev` on purpose, and
+    CI has no copy even though a dev box might.
+    """
+    monkeypatch.setattr("ragmill.chat.check_backend_available", lambda config=None: None)
+
+
+@pytest.fixture
 def mock_llm():
     """A fake generate_answer(query, chunks, config=None) -> str. Callers monkeypatch it onto
     whichever module imported the real one (e.g. ragmill.server, ragmill.__main__)
