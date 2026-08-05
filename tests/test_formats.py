@@ -7,6 +7,7 @@ when the `tesseract` / `pdftoppm` binaries aren't installed, so the suite stays
 green on minimal environments.
 """
 
+import logging
 import shutil
 
 import pytest
@@ -232,3 +233,92 @@ class TestBinaryInstallHints:
         assert "brew" not in msg, msg
         # tells the user how to opt out of OCR rather than only how to enable it
         assert "enable_ocr=False" in msg, msg
+
+
+# ── Text files are decoded by encoding, not assumed to be UTF-8 ──────────────
+
+
+class TestTextEncodingDetection:
+    """Reading every text file as UTF-8 with errors="ignore" corrupts silently.
+
+    This is the default on Windows, where Notepad writes UTF-16 for "Unicode"
+    and cp1252 for "ANSI". Decoded as UTF-8, the first became NUL-interleaved
+    mojibake that embeds as noise and never matches a query, and the second lost
+    every non-ASCII byte — "costs £50" became "costs 50". Both looked like a
+    successful ingest, so a .txt file appeared not to work at all.
+    """
+
+    SENTENCE = "The company mascot is a sprocket named Gizmo.\n"
+
+    @pytest.mark.parametrize(
+        "label, encoding",
+        [
+            ("notepad-unicode", "utf-16"),  # BOM + little endian
+            ("notepad-unicode-be", "utf-16-be"),
+            ("notepad-utf8-bom", "utf-8-sig"),
+            ("plain-utf8", "utf-8"),
+        ],
+    )
+    def test_roundtrips_without_bom_or_mojibake(self, tmp_path, label, encoding):
+        p = tmp_path / f"{label}.txt"
+        if encoding == "utf-16-be":
+            p.write_bytes(b"\xfe\xff" + self.SENTENCE.encode("utf-16-be"))
+        else:
+            p.write_text(self.SENTENCE, encoding=encoding)
+
+        text = parsers.read_text_file(str(p))
+
+        assert text == self.SENTENCE, repr(text)
+        assert "\x00" not in text, "NUL means UTF-16 was misread as UTF-8"
+        assert not text.startswith("﻿"), "BOM leaked into the text"
+
+    def test_cp1252_keeps_every_character(self, tmp_path, caplog):
+        """errors="ignore" deleted these bytes; £50 silently became 50."""
+        p = tmp_path / "ansi.txt"
+        p.write_bytes(b"Caf\xe9 \x97 na\xefve \x93quoted\x94 r\xe9sum\xe9 costs \xa350\n")
+
+        with caplog.at_level(logging.WARNING):
+            text = parsers.read_text_file(str(p))
+
+        assert text == "Café — naïve “quoted” résumé costs £50\n", repr(text)
+        # guessing an encoding is not something to do silently
+        assert "cp1252" in caplog.text
+
+    def test_bomless_utf16_is_still_detected(self, tmp_path, caplog):
+        """NUL is valid UTF-8 (U+0000), so BOM-less UTF-16 decodes "fine"."""
+        p = tmp_path / "nobom.txt"
+        p.write_bytes(self.SENTENCE.encode("utf-16-le"))
+
+        with caplog.at_level(logging.WARNING):
+            text = parsers.read_text_file(str(p))
+
+        assert text == self.SENTENCE, repr(text)
+        assert "utf-16" in caplog.text
+
+    def test_engine_ingests_utf16_text_as_searchable_content(self, tmp_path):
+        """The reported symptom, end to end: a .txt that yielded nothing useful."""
+        (tmp_path / "notes.txt").write_text(self.SENTENCE, encoding="utf-16")
+
+        docs = {
+            d["filename"]: d["raw_content"] for d in RAGEngine().stream_directory(str(tmp_path))
+        }
+
+        assert "Gizmo" in docs["notes.txt"], repr(docs["notes.txt"])
+        assert "\x00" not in docs["notes.txt"]
+
+    @pytest.mark.parametrize("ext", [".md", ".log", ".rst"])
+    def test_other_plaintext_extensions_get_the_same_treatment(self, tmp_path, ext):
+        (tmp_path / f"doc{ext}").write_text(self.SENTENCE, encoding="utf-16")
+        docs = {
+            d["filename"]: d["raw_content"] for d in RAGEngine().stream_directory(str(tmp_path))
+        }
+        assert "Gizmo" in docs[f"doc{ext}"]
+
+    def test_csv_and_html_also_decode_by_bom(self, tmp_path):
+        """The same flaw was in every text reader, not just plain text."""
+        (tmp_path / "a.csv").write_text("name,city\nGizmo,Köln\n", encoding="utf-16")
+        assert "Köln" in parsers.extract_csv_text(str(tmp_path / "a.csv"))
+
+        pytest.importorskip("bs4")
+        (tmp_path / "b.html").write_text("<p>Grüße from Köln</p>", encoding="utf-16")
+        assert "Köln" in parsers.extract_html_text(str(tmp_path / "b.html"))

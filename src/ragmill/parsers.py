@@ -51,6 +51,88 @@ _BINARY_HINTS = {
 }
 
 
+# Byte-order marks, longest first — UTF-32 LE's BOM starts with UTF-16 LE's, so
+# order matters. The codecs here are the BOM-consuming ones on purpose: bare
+# "utf-16-le" leaves U+FEFF at the start of the text, which then leads the first
+# chunk. "utf-16"/"utf-32" read the BOM for endianness and strip it; "utf-8-sig"
+# strips the UTF-8 BOM.
+_BOMS = (
+    (b"\x00\x00\xfe\xff", "utf-32"),
+    (b"\xff\xfe\x00\x00", "utf-32"),
+    (b"\xef\xbb\xbf", "utf-8-sig"),
+    (b"\xfe\xff", "utf-16"),
+    (b"\xff\xfe", "utf-16"),
+)
+
+# Tried in order for BOM-less files that are not valid UTF-8. cp1252 is what
+# Windows Notepad's "ANSI" produces; latin-1 cannot fail, so it terminates the
+# chain rather than letting a file go unread.
+_TEXT_FALLBACKS = ("cp1252", "latin-1")
+
+
+def read_text_file(path: str) -> str:
+    """Read a text file, detecting its encoding instead of assuming UTF-8.
+
+    Reading everything as UTF-8 with errors="ignore" corrupts files silently,
+    which matters most on Windows because that is what Notepad emits:
+
+      - "Unicode" (UTF-16) decoded as UTF-8 yields NUL-interleaved mojibake
+        ("T\\x00h\\x00e\\x00"), so chunks embed as noise and never match a query.
+      - "ANSI" (cp1252) loses every non-ASCII byte outright, turning "costs £50"
+        into "costs 50" — a silent change of meaning, not a visible failure.
+
+    Order: honour a BOM if present, else strict UTF-8, else the fallbacks. A
+    fallback is logged, because guessing an encoding is worth telling the user.
+    """
+    with open(path, "rb") as f:
+        raw = f.read()
+
+    for bom, codec in _BOMS:
+        if raw.startswith(bom):
+            return raw.decode(codec)
+
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        pass
+    else:
+        # BOM-less UTF-16 can decode as UTF-8 (NUL is valid U+0000) and produce
+        # exactly the mojibake above. Interior NULs never occur in real text.
+        if "\x00" not in text:
+            return text
+        for codec in ("utf-16-le", "utf-16-be"):
+            try:
+                candidate = raw.decode(codec)
+            except UnicodeDecodeError:
+                continue
+            if "\x00" not in candidate:
+                logger.warning(
+                    "%s: no BOM but content looks like %s; decoded as %s.",
+                    os.path.basename(path),
+                    codec,
+                    codec,
+                )
+                return candidate
+        return text
+
+    for codec in _TEXT_FALLBACKS:
+        try:
+            text = raw.decode(codec)
+        except UnicodeDecodeError:
+            continue
+        logger.warning(
+            "%s: not valid UTF-8, decoded as %s. Some characters may be wrong — "
+            "re-save the file as UTF-8 if the text looks incorrect.",
+            os.path.basename(path),
+            codec,
+        )
+        return text
+
+    raise UnicodeDecodeError(  # pragma: no cover — latin-1 above cannot fail
+        "utf-8", raw, 0, len(raw), f"could not decode {path} as UTF-8, cp1252, or latin-1"
+    )
+
+
 def _install_hint(binary: str) -> str:
     """Platform-appropriate instructions for installing a system binary."""
     hints = _BINARY_HINTS[binary]
@@ -165,8 +247,7 @@ def extract_html_text(path: str) -> str:
         raise ImportError(
             "HTML support requires the 'office' extra. Install it with: pip install ragmill[office]"
         ) from exc
-    with open(path, "r", encoding="utf-8", errors="ignore") as f:
-        soup = BeautifulSoup(f.read(), "html.parser")
+    soup = BeautifulSoup(read_text_file(path), "html.parser")
     for tag in soup(["script", "style", "noscript"]):
         tag.decompose()
     return soup.get_text(separator="\n").strip()
@@ -182,8 +263,7 @@ def extract_rtf_text(path: str) -> str:
         raise ImportError(
             "RTF support requires the 'office' extra. Install it with: pip install ragmill[office]"
         ) from exc
-    with open(path, "r", encoding="utf-8", errors="ignore") as f:
-        return rtf_to_text(f.read()).strip()
+    return rtf_to_text(read_text_file(path)).strip()
 
 
 # ── XLSX ──────────────────────────────────────────────────────────────────────
@@ -240,9 +320,9 @@ def extract_csv_text(path: str) -> str:
 
     dialect = "excel-tab" if os.path.splitext(path)[1].lower() == ".tsv" else "excel"
     rows = []
-    with open(path, newline="", encoding="utf-8", errors="ignore") as f:
-        for row in csv.reader(f, dialect=dialect):
-            cells = [c.strip() for c in row if c.strip()]
-            if cells:
-                rows.append(" | ".join(cells))
+    # splitlines() keeps csv's newline handling intact after decoding.
+    for row in csv.reader(read_text_file(path).splitlines(), dialect=dialect):
+        cells = [c.strip() for c in row if c.strip()]
+        if cells:
+            rows.append(" | ".join(cells))
     return "\n".join(rows).strip()

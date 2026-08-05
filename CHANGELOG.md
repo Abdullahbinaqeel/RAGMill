@@ -3,6 +3,16 @@
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.2] - 2026-08-06
+
+### Fixed
+- Text files are now decoded by their actual encoding instead of being read as UTF-8 with `errors="ignore"`. The old behaviour corrupted files silently, which mattered most on Windows because it is what Notepad writes:
+  - **"Unicode" (UTF-16)** decoded as UTF-8 produced NUL-interleaved mojibake (`T\x00h\x00e\x00…`). The file ingested "successfully", but its chunks embedded as noise and never matched a query — a `.txt` file that appeared not to work at all.
+  - **"ANSI" (cp1252)** lost every non-ASCII byte, turning `costs £50` into `costs 50` — a silent change of meaning rather than a visible failure.
+  - **UTF-8 with BOM** left a stray `﻿` at the head of the first chunk.
+
+  Byte-order marks are now honoured (UTF-8/16/32, and the BOM is stripped rather than left in the text), BOM-less UTF-16 is detected via interior NULs, and non-UTF-8 files fall back to cp1252 then latin-1 **with a warning** naming the encoding used. This applies to every text reader — plain text (`.txt`, `.md`, `.log`, `.rst`), `.csv`/`.tsv`, `.html`, and `.rtf` — all four of which had the same flaw.
+
 ## [0.4.1] - 2026-08-05
 
 ### Fixed
