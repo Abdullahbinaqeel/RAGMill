@@ -154,22 +154,32 @@ ragmill = "ragmill.__main__:main"
 packages = ["src/ragmill"]
 
 [tool.hatch.build.targets.sdist]
-# Ship the package, its docs, and governance files — but not internal
-# review/scratch notes that aren't part of the distributed project.
-exclude = [
-    "overview.md",
-    "JUDGE_REVIEW.md",
-    "SENIOR_DEV_REVIEW.md",
-    "SQA_REVIEW.md",
-    "USAGE_FLOW_REVIEW.md",
-    "test_report.md",
-    "automated_testing.md",
-    "manual_testing.md",
-    "medium_blog.md",
-    "version_3.md",
-    "run.sh",
-    "docs/",
-    "site/",
+# Allowlist, not a denylist. Hatchling otherwise ships every file in the tree
+# that .gitignore doesn't exclude, so any local scratch directory (test corpora,
+# decks, node_modules) silently lands in the published sdist. Listing what ships
+# means a new stray directory is omitted by default instead of leaked.
+include = [
+    "src/ragmill",
+    "tests",
+    ".github",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "GUIDE.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
+    "SECURITY.md",
+    "RELEASING.md",
+    "pyproject.toml",
+    "mkdocs.yml",
+    "logo.png",
+    "Dockerfile",
+    "docker-compose.yml",
+    "docker-entrypoint.sh",
+    ".editorconfig",
+    ".env.example",
+    ".gitignore",
+    ".pre-commit-config.yaml",
 ]
 
 [tool.pytest.ini_options]

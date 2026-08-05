@@ -1547,6 +1547,21 @@ class TestAllExtraIsWheelInstallable:
     def test_chat_extra_still_provides_the_local_llm(self):
         assert "llama-cpp-python" in self._dep_names("chat")
 
+    def test_sdist_uses_an_allowlist(self):
+        """A denylisted sdist publishes any local scratch directory.
+
+        Hatchling ships everything .gitignore does not exclude, so an untracked
+        working directory (a test corpus, a deck, node_modules) silently ends up
+        in the published tarball. An `include` list fails closed instead.
+        """
+        pyproject = Path(__file__).parent.parent / "pyproject.toml"
+        sdist = tomllib.loads(pyproject.read_text())["tool"]["hatch"]["build"]["targets"]["sdist"]
+        assert "include" in sdist, (
+            "The sdist target must use an `include` allowlist; with only `exclude`, "
+            "any new untracked directory is published to PyPI."
+        )
+        assert "src/ragmill" in sdist["include"]
+
     def test_all_extra_still_covers_every_other_optional_feature(self):
         """Removing llama-cpp-python must not have dropped anything else."""
         pyproject = Path(__file__).parent.parent / "pyproject.toml"
