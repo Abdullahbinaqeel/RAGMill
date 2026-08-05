@@ -59,7 +59,12 @@ ragmill.db-*
 data/
 
 # ── Internal / working notes (not part of the public repository) ────────────
+# Also keeps these out of the sdist: hatchling honors this file when selecting
+# sdist contents, so anything untracked-but-unignored here ends up published.
 notes/
+pitch-deck/
+node_modules/
+RAGMill testing on legal docs/
 
 # ── Editors & IDEs ──────────────────────────────────────────────────────────
 .idea/
