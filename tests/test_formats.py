@@ -189,3 +189,46 @@ def test_engine_skips_textless_file_with_warning(tmp_path, caplog):
 
     assert "empty.txt" not in filenames
     assert any("No extractable text" in rec.message for rec in caplog.records)
+
+
+# ── System-binary errors name a command for the user's actual OS ─────────────
+
+
+class TestBinaryInstallHints:
+    """`brew install ...` is useless to the Windows and Linux majority.
+
+    pip cannot supply tesseract or pdftoppm, so these messages are the only
+    guidance a user gets. They have to name a command that exists on the OS the
+    error was raised on.
+    """
+
+    @pytest.mark.parametrize("binary", ["tesseract", "pdftoppm"])
+    @pytest.mark.parametrize(
+        "platform, expected",
+        [("win32", "PATH"), ("darwin", "brew install"), ("linux", "apt-get install")],
+    )
+    def test_hint_matches_platform(self, monkeypatch, binary, platform, expected):
+        monkeypatch.setattr(parsers.sys, "platform", platform)
+        hint = parsers._install_hint(binary)
+        assert expected in hint, f"{binary} on {platform}: {hint!r}"
+        if platform != "darwin":
+            assert "brew" not in hint, f"{binary} on {platform} still says brew: {hint!r}"
+
+    def test_windows_hints_link_to_a_real_download(self, monkeypatch):
+        monkeypatch.setattr(parsers.sys, "platform", "win32")
+        assert "UB-Mannheim" in parsers._install_hint("tesseract")
+        assert "poppler-windows" in parsers._install_hint("pdftoppm")
+
+    def test_missing_poppler_error_is_windows_aware(self, monkeypatch, tmp_path):
+        """The exact failure the CI run hit, but reported to a Windows user."""
+        monkeypatch.setattr(parsers.sys, "platform", "win32")
+        monkeypatch.setattr(parsers.shutil, "which", lambda _: None)
+
+        with pytest.raises(RuntimeError) as excinfo:
+            parsers._ocr_pdf(str(tmp_path / "scan.pdf"), "eng")
+
+        msg = str(excinfo.value)
+        assert "poppler-windows" in msg, msg
+        assert "brew" not in msg, msg
+        # tells the user how to opt out of OCR rather than only how to enable it
+        assert "enable_ocr=False" in msg, msg

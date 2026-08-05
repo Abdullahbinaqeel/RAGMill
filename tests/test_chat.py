@@ -533,3 +533,37 @@ def test_generate_answer_real_local_model():
     ]
     answer = chat.generate_answer("who is the mascot?", chunks)
     assert isinstance(answer, str) and len(answer) > 0
+
+
+# ── Missing llama-cpp-python gives actionable install guidance ───────────────
+
+
+def test_missing_llama_cpp_points_at_a_command_that_works(monkeypatch):
+    """The error must not send users to `pip install ragmill[chat]` alone.
+
+    llama-cpp-python left the `all` extra in 0.4.1 because it has no PyPI
+    wheels, so more users now reach this path. On Windows `pip install
+    "ragmill[chat]"` is exactly the command that dies on MAX_PATH, so pointing
+    only there is a dead end — the message has to name the prebuilt wheel index
+    (and the hosted backends, which need no local model at all).
+    """
+    import builtins
+
+    chat._llm_cache.clear()
+    real_import = builtins.__import__
+
+    def _no_llama(name, *args, **kwargs):
+        if name == "llama_cpp":
+            raise ImportError("No module named 'llama_cpp'")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", _no_llama)
+
+    with pytest.raises(ImportError) as excinfo:
+        chat._get_llm("some/repo", "model.gguf", 2048)
+
+    msg = str(excinfo.value)
+    assert "abetlen.github.io/llama-cpp-python/whl/cpu" in msg, msg
+    assert "chat-gemini" in msg and "chat-openai" in msg, msg
+    # explains *why* it is not bundled, so the omission does not read as a bug
+    assert "MAX_PATH" in msg or "no PyPI wheels" in msg, msg

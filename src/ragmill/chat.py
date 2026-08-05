@@ -97,8 +97,17 @@ def _get_llm(repo_id: str, filename: str, n_ctx: int):
             from llama_cpp import Llama
         except ImportError as exc:
             raise ImportError(
-                "The local chat backend requires the 'chat' extra. "
-                "Install it with: pip install ragmill[chat]"
+                "The local chat backend needs llama-cpp-python, which is not part of "
+                '"ragmill[all]" because it publishes no PyPI wheels — pip would build it '
+                "from source, which needs a C++ toolchain and fails on Windows via the "
+                "260-character MAX_PATH limit.\n\n"
+                "Install a prebuilt wheel (no compiler needed):\n"
+                "  pip install llama-cpp-python --extra-index-url "
+                "https://abetlen.github.io/llama-cpp-python/whl/cpu\n\n"
+                'Or build from source if you have CMake and a C++ compiler: pip install "ragmill[chat]"\n'
+                "Or use a hosted backend instead, which needs no local model:\n"
+                '  pip install "ragmill[chat-gemini]"   # then set GEMINI_API_KEY\n'
+                '  pip install "ragmill[chat-openai]"   # then set OPENAI_API_KEY'
             ) from exc
 
         model_path = _download_gguf(repo_id, filename, DEFAULT_CACHE_DIR)

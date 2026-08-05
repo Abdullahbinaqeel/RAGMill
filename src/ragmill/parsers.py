@@ -21,6 +21,7 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -30,6 +31,34 @@ DEFAULT_OCR_LANG = "eng"
 # A PDF whose extracted text layer is shorter than this is treated as
 # scanned/image-only and routed to OCR (when enabled).
 PDF_OCR_MIN_CHARS = 10
+
+# How to install the system binaries OCR needs, per platform. pip cannot supply
+# these, so the message has to name a real command for the user's OS — a
+# brew-only hint is useless to the Windows and Linux majority.
+_BINARY_HINTS = {
+    "tesseract": {
+        "win32": "download the installer from https://github.com/UB-Mannheim/tesseract/wiki "
+        "and make sure its folder is on PATH",
+        "darwin": "brew install tesseract",
+        "linux": "apt-get install tesseract-ocr",
+    },
+    "pdftoppm": {
+        "win32": "download poppler from https://github.com/oschwartz10612/poppler-windows/releases "
+        "and add its bin/ folder to PATH",
+        "darwin": "brew install poppler",
+        "linux": "apt-get install poppler-utils",
+    },
+}
+
+
+def _install_hint(binary: str) -> str:
+    """Platform-appropriate instructions for installing a system binary."""
+    hints = _BINARY_HINTS[binary]
+    if sys.platform.startswith("win"):
+        return hints["win32"]
+    if sys.platform == "darwin":
+        return hints["darwin"]
+    return hints["linux"]
 
 
 # ── PDF (digital text layer, with OCR fallback for scans) ────────────────────
@@ -63,8 +92,10 @@ def extract_pdf_text(
 def _ocr_pdf(path: str, ocr_lang: str) -> str:
     if not shutil.which("pdftoppm"):
         raise RuntimeError(
-            "Scanned PDF needs poppler's `pdftoppm` to rasterise pages. "
-            "Install it with: brew install poppler (or apt-get install poppler-utils)."
+            "This PDF has no text layer, so it looks scanned and needs OCR — which "
+            "requires poppler's `pdftoppm` to rasterise the pages. To install it, "
+            f"{_install_hint('pdftoppm')}. To skip OCR and accept empty text for "
+            "scanned PDFs instead, call extract_pdf_text(..., enable_ocr=False)."
         )
     logger.info("%s: no text layer, running OCR (%s)…", os.path.basename(path), ocr_lang)
     with tempfile.TemporaryDirectory() as tmp:
@@ -108,13 +139,13 @@ def _ocr_image_file(image_path, ocr_lang: str) -> str:
         from PIL import Image
     except ImportError as exc:
         raise ImportError(
-            "OCR support requires the 'ocr' extra. Install it with: pip install ragmill[ocr] "
-            "(and the system `tesseract` binary: brew install tesseract)."
+            'OCR support requires the "ocr" extra: pip install "ragmill[ocr]". '
+            f"It also needs the system `tesseract` binary — to install that, {_install_hint('tesseract')}."
         ) from exc
     if not shutil.which("tesseract"):
         raise RuntimeError(
-            "The `tesseract` OCR binary is not on PATH. Install it with: brew install tesseract "
-            "(or apt-get install tesseract-ocr)."
+            "The `tesseract` OCR binary is not on PATH. To install it, "
+            f"{_install_hint('tesseract')}."
         )
     with Image.open(image_path) as img:
         return pytesseract.image_to_string(img, lang=ocr_lang).strip()

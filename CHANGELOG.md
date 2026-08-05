@@ -6,6 +6,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [0.4.1] - 2026-08-05
 
 ### Fixed
+- Errors for missing system binaries now name a command for the user's own OS. `tesseract` and poppler's `pdftoppm` cannot come from pip, and the messages previously suggested `brew install` on every platform — useless on Windows and Linux. The scanned-PDF error also mentions `enable_ocr=False` for opting out rather than only how to opt in.
+- The "local chat backend unavailable" error no longer points solely at `pip install "ragmill[chat]"`, which is the command that fails on Windows. It now leads with the prebuilt-wheel index, explains why the package is not in `[all]`, and offers the hosted Gemini/OpenAI backends that need no local model.
 - `pip install ragmill[all]` no longer fails on a clean machine. The `all` (and `dev`) extras pulled `llama-cpp-python`, which ships no PyPI wheels for recent versions, so pip fell back to a 70MB+ sdist that vendors llama.cpp — that needs a C++ toolchain, and on Windows the vendored tree exceeds the 260-char `MAX_PATH` limit, aborting the whole install with `OSError: [Errno 2] No such file or directory`. The local LLM is now opt-in only: `pip install "ragmill[chat]"`.
 
 ## [0.4.0] - 2026-07-24
