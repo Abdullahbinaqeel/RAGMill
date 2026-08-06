@@ -58,7 +58,7 @@ optional extra, so you only install what you actually use.
 pip install ragmill                          # core only (txt/md), zero dependencies
 pip install ragmill[all]                     # everything installable from wheels (PDF, DOCX, embeddings, server, cloud backends)
 pip install ragmill[embeddings]              # + local ONNX embeddings
-pip install ragmill[chat]                    # + local LLM for retrieval-augmented answers (no API key) — see note below
+ragmill setup-chat                           # + local LLM for retrieval-augmented answers (no API key) — run after installing
 pip install ragmill[chat-gemini]             # + Gemini as the chat backend (needs GEMINI_API_KEY)
 pip install ragmill[chat-openai]             # + ChatGPT as the chat backend (needs OPENAI_API_KEY)
 pip install ragmill[pinecone]                # + Pinecone cloud backend
@@ -150,12 +150,12 @@ selected via `RAGMILL_CHAT_BACKEND` (default `local`):
 
 | Backend | Install | Needs a key? | Notes |
 |---|---|---|---|
-| `local` (default) | `ragmill[chat]` | No | Qwen2.5-1.5B-Instruct via `llama-cpp-python`. Downloads once (~1.1GB) to `~/.cache/ragmill/models`, then runs fully offline. |
+| `local` (default) | `ragmill setup-chat` | No | Qwen2.5-1.5B-Instruct via `llama-cpp-python`. Downloads once (~1.1GB) to `~/.cache/ragmill/models`, then runs fully offline. |
 | `gemini` | `ragmill[chat-gemini]` | `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) | Google's Gemini API. Best answer quality if you're online and have a key. |
 | `openai` | `ragmill[chat-openai]` | `OPENAI_API_KEY` | OpenAI's Chat Completions API (ChatGPT). |
 
 ```bash
-pip install ragmill[chat]           # local model (default, no key)
+ragmill setup-chat                  # local model (default, no key) — prompts before installing
 ragmill chat                        # interactive terminal Q&A over your ingested docs
 ```
 
@@ -294,6 +294,7 @@ docker compose --profile qdrant up
 ragmill ingest ./docs       # Ingest + embed files
 ragmill sync ./docs         # Incremental sync
 ragmill search "query"      # Search
+ragmill setup-chat          # Install the local LLM (once, prompts first)
 ragmill chat                # Interactive Q&A over stored chunks (local LLM)
 ragmill count                # Chunk count
 ragmill serve               # Start API

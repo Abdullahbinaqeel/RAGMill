@@ -33,7 +33,7 @@ pip install ragmill
 | `pip install "ragmill[ocr]"` | `pytesseract`, `pillow` | OCR for images (`.png` / `.jpg` / …) and scanned/image-only PDFs |
 | `pip install "ragmill[embeddings]"` | `onnxruntime`, `numpy`, `tokenizers` | local embeddings + vector search |
 | `pip install "ragmill[server]"` | `fastapi`, `uvicorn`, `pydantic` | the REST API |
-| `pip install "ragmill[chat]"` | `llama-cpp-python` | local LLM answers (no API key) — **not in `[all]`**, see below |
+| `ragmill setup-chat` | `llama-cpp-python` | local LLM answers (no API key) — **not in `[all]`**, see below |
 | `pip install "ragmill[chat-gemini]"` | `google-genai` | Gemini as the chat backend |
 | `pip install "ragmill[chat-openai]"` | `openai` | OpenAI/ChatGPT as the chat backend |
 | `pip install "ragmill[pinecone]"` | `pinecone` | Pinecone cloud vector store |

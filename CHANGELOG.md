@@ -3,6 +3,14 @@
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.1] - 2026-08-06
+
+### Fixed
+- Documentation now points at `ragmill setup-chat` for the local model everywhere, rather than `pip install "ragmill[chat]"` — a source build, and the command that fails on Windows. It was still the headline route in the README install list, both backend tables, and the installation-guide extras table.
+- The quickstarts in `docs/index.md`, `docs/quickstart.md` and the README CLI list went straight from `pip install` to `ragmill chat`, walking a new reader into the missing-model error. They now include the one-time `ragmill setup-chat` step.
+- `ragmill setup-chat` was missing from the CLI reference command table.
+- Added tests asserting that no doc prints the wheel-index command without `--only-binary`, and that any quickstart showing `ragmill chat` also mentions `setup-chat` — the previous fix corrected three files by hand and missed six other places.
+
 ## [0.5.0] - 2026-08-06
 
 ### Added

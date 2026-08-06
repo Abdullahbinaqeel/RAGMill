@@ -73,6 +73,15 @@ those chunks, citing the source file.
 
 === "CLI (local model, no key)"
 
+    The local model is a one-time install — it is not part of `[all]`, because
+    it has no PyPI wheels ([why](installation.md)):
+
+    ```bash
+    ragmill setup-chat
+    ```
+
+    Then:
+
     ```bash
     ragmill chat
     # you> what does ragmill do?
