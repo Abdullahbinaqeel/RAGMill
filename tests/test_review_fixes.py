@@ -1703,3 +1703,40 @@ class TestStaleFilesRemoved:
 
     def test_welcome_txt_deleted(self):
         assert not Path(__file__).parent.parent.joinpath("docs", "welcome.txt").exists()
+
+
+# ── Docs never hand out the command that compiles from source ────────────────
+
+
+class TestDocsInstallCommandIsCorrect:
+    """`pip install llama-cpp-python --extra-index-url <index>` resolves to the
+    sdist, because --extra-index-url merges indexes and PyPI carries a newer
+    sdist-only release than the wheel index carries wheels. Any doc that prints
+    that command without --only-binary is telling users to trigger the very
+    build failure the index exists to avoid.
+    """
+
+    DOCS = ["README.md", "docs/installation.md", "docs/guide/chat.md", "docs/quickstart.md"]
+
+    def _text(self, name):
+        return (Path(__file__).parent.parent / name).read_text()
+
+    @pytest.mark.parametrize("name", DOCS)
+    def test_llama_install_snippets_force_a_wheel(self, name):
+        text = self._text(name)
+        if "abetlen.github.io" not in text:
+            return
+        # every mention of the index must be accompanied by the flag
+        assert "--only-binary" in text, (
+            f"{name} shows the wheel-index command without --only-binary, which "
+            "resolves to the 70MB sdist and compiles from source."
+        )
+
+    @pytest.mark.parametrize("name", ["README.md", "docs/index.md", "docs/quickstart.md"])
+    def test_quickstarts_mention_setup_chat(self, name):
+        """A quickstart that goes pip install -> ragmill chat walks the reader
+        into the missing-model error."""
+        text = self._text(name)
+        if "ragmill chat" not in text:
+            return
+        assert "setup-chat" in text, f"{name} shows `ragmill chat` but never mentions setup-chat"

@@ -14,6 +14,7 @@ ragmill <command> [args]
 | `ragmill sync <dir>` | Incremental sync: add new, update changed, delete removed |
 | `ragmill search <query> [--top-k N]` | Semantic search over stored chunks |
 | `ragmill chat [--top-k N]` | Interactive terminal Q&A over stored chunks |
+| `ragmill setup-chat [--yes]` | Install the local chat model runtime (prebuilt wheel, prompts first) |
 | `ragmill count` | Print the number of stored chunks |
 | `ragmill serve [--reload]` | Start the FastAPI REST server |
 | `ragmill export <path.jsonl>` | Export the whole store to JSONL |

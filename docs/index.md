@@ -61,6 +61,7 @@ model and a local GGUF chat model download once (~1 GB total) to
 
 ```bash
 pip install "ragmill[all]"
+ragmill setup-chat               # one-time: install the local LLM
 ragmill sync ./my_documents      # index a folder
 ragmill chat                     # ask questions about it, in your terminal
 ```

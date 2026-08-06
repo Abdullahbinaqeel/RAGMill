@@ -13,7 +13,7 @@ env-var change — no code change.
 
 | Backend | Extra | Needs a key? | Notes |
 |---|---|---|---|
-| `local` *(default)* | `ragmill[chat]` | **No** | `Qwen2.5-1.5B-Instruct` via `llama-cpp-python`. Downloads once (~1 GB) to `~/.cache/ragmill/models`, then fully offline. |
+| `local` *(default)* | `ragmill setup-chat` | **No** | `Qwen2.5-1.5B-Instruct` via `llama-cpp-python`. Downloads once (~1 GB) to `~/.cache/ragmill/models`, then fully offline. |
 | `gemini` | `ragmill[chat-gemini]` | `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) | Google Gemini API. Best quality when online. |
 | `openai` | `ragmill[chat-openai]` | `OPENAI_API_KEY` | OpenAI Chat Completions (ChatGPT). |
 
